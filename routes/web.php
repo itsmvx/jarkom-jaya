@@ -32,7 +32,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', [AdminPagesController::class, 'periodePraktikumIndexPage'])->name('index');
     });
 });
-Route::get('/login-admin', [AdminPagesController::class, 'loginAdminPage'])->name('login-admin');
+Route::get('/login-admin', [AdminPagesController::class, 'loginAdminPage'])->name('admin.login');
 Route::get('/praktikan', function () {
     return Inertia::render('AdminPraktikanIndexPage');
 });

@@ -11,14 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('aslab', function (Blueprint $table) {
+        Schema::create('admin', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('nama');
-            $table->string('npm')->unique();
-            $table->string('no_hp');
+            $table->string('avatar')->nullable();
             $table->string('username')->unique();
             $table->string('password');
-            $table->string('avatar')->nullable();
             $table->timestamps();
         });
     }
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('aslab');
+        Schema::dropIfExists('admin');
     }
 };

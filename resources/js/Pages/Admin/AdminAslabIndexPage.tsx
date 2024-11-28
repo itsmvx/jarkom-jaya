@@ -34,65 +34,12 @@ import { useState } from "react";
 import { ViewPerPage } from "@/components/view-per-page";
 import { TableSearchForm } from "@/components/table-search-form";
 import { Head } from "@inertiajs/react";
+import { Aslab } from "@/types/models";
+import { PageProps, PaginationData } from "@/types";
 
-export type Aslab = {
-    id: string;
-    nama: string;
-    npm: string;
-    username: string;
-};
-const data: Aslab[] = [
-    {
-        "id": "b1c92c50-09c3-4c2b-b77e-5c88d8dbd598",
-        "nama": "Mochamad Luthfan Rianda Putra",
-        "npm": "06.2021.1.07397",
-        "username": "pann"
-    },
-    {
-        "id": "435db5f2-03f1-4c72-b032-4ef4585d5051",
-        "nama": "Indy Adira Khalfani",
-        "npm": "06.2021.1.07434",
-        "username": "viole"
-    },
-    {
-        "id": "d321fc94-4769-43bb-9ec6-d07c6146b6db",
-        "nama": "Latiful Sirri",
-        "npm": "06.2021.1.07461",
-        "username": "vain"
-    },
-    {
-        "id": "ce0631b3-52d6-486e-aebb-df2b02ff65e4",
-        "nama": "Chatarina natassya putri",
-        "npm": "06.2021.1.07482",
-        "username": "nat"
-    },
-    {
-        "id": "7816e3c1-5b08-42b1-9c18-c1b2dc097dbf",
-        "nama": "Afzal Musyaffa Lathif Ashrafil Adam",
-        "npm": "06.2022.1.07587",
-        "username": "afgood"
-    },
-    {
-        "id": "f02e5b1a-5fa8-4f69-8331-fd674379e650",
-        "nama": "Windi Nitasya Lubis",
-        "npm": "06.2022.1.07590",
-        "username": "windi"
-    },
-    {
-        "id": "d6492a8e-0b94-46e6-9b38-8caa6e5db879",
-        "nama": "Marikh kasiful izzat",
-        "npm": "06.2022.1.07610",
-        "username": "tazz"
-    },
-    {
-        "id": "7c03724f-c68c-4f65-bfb7-ec6f9cfb0988",
-        "nama": "Gregoria Stefania Kue Siga",
-        "npm": "06.2022.1.07626",
-        "username": "greiss"
-    }
-]
+type Aslabs = Omit<Aslab, 'no_hp'|'password'|'created_at'|'updated_at'>
 
-export const columns: ColumnDef<Aslab>[] = [
+export const columns: ColumnDef<Aslabs>[] = [
     {
         accessorKey: "nama",
         header: ({ column }) => {
@@ -162,14 +109,16 @@ export const columns: ColumnDef<Aslab>[] = [
         },
     },
 ]
-export default function AdminAslabIndexPage() {
+export default function AdminAslabIndexPage({ pagination }: PageProps<{
+    pagination: PaginationData<Aslabs[]>
+}>) {
     const [ sorting, setSorting ] = useState<SortingState>([])
     const [ columnFilters, setColumnFilters ] = useState<ColumnFiltersState>([])
     const [ columnVisibility, setColumnVisibility ] = useState<VisibilityState>({})
     const [ rowSelection, setRowSelection ] = useState({})
 
     const table = useReactTable({
-        data,
+        data: pagination.data,
         columns,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -184,7 +133,7 @@ export default function AdminAslabIndexPage() {
             columnVisibility,
             rowSelection,
         },
-    })
+    });
 
     return (
         <AppLayout>

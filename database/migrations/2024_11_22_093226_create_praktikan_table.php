@@ -15,6 +15,9 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('nama');
             $table->string('npm')->unique();
+            $table->string('username')->unique();
+            $table->string('password');
+            $table->string('avatar')->nullable();
             $table->timestamps();
         });
     }

@@ -1,13 +1,16 @@
-export interface User {
-    id: number;
-    name: string;
-    email: string;
-    email_verified_at?: string;
-}
+export type AuthUser = {
+    id: string;
+    nama: string;
+    username: string;
+    npm: string | null;
+    avatar: string | null;
+};
+export type AuthRole = 'admin' | 'aslab' | 'praktikan' | null;
 
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>, > = T & {
     auth: {
-        user: User;
+        user: AuthUser;
+        role: AuthRole;
     };
 };
 

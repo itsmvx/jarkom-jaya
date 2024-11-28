@@ -209,11 +209,13 @@ export default function AdminPraktikumIndexPage() {
             <CardDescription>
                 Data Praktikum yang terdaftar
             </CardDescription>
-            <TableSearchForm table={table} />
+            <div className="w-full flex justify-end">
+                <TableSearchForm table={ table }/>
+            </div>
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>
-                        {table.getHeaderGroups().map((headerGroup) => (
+                    {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => {
                                     return (
