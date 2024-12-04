@@ -130,8 +130,8 @@ class PraktikanSeeder extends Seeder
                 'username' => strtolower(preg_replace('/\s+/', '', $praktikan['nama'])),
                 'password' => Hash::make($username, [ 'rounds' => 12 ]),
                 'avatar' => null,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'created_at' => now('Asia/Jakarta'),
+                'updated_at' => now('Asia/Jakarta'),
             ];
         }, $data);
         Praktikan::insert($praktikans);

@@ -47,11 +47,6 @@ const data: {
                     route: 'admin.periode-praktikum.index'
                 },
                 {
-                    title: "Tambahkan Praktikum",
-                    url: "#",
-                    route: ''
-                },
-                {
                     title: "Manajemen Praktikum",
                     url: route('admin.praktikum.index'),
                     route: 'admin.praktikum.index'
@@ -62,11 +57,6 @@ const data: {
             title: "Praktikan",
             url: "#",
             items: [
-                {
-                    title: "Tambahkan Praktikan",
-                    url: "#",
-                    route: ''
-                },
                 {
                     title: "Manajemen Praktikan",
                     url: route('admin.praktikan.index'),
@@ -79,11 +69,6 @@ const data: {
             url: "#",
             items: [
                 {
-                    title: "Tambahkan Asisten Lab.",
-                    url: "#",
-                    route: ''
-                },
-                {
                     title: "Manajemen Asisten Lab.",
                     url: route('admin.aslab.index'),
                     route: 'admin.aslab.index'
@@ -94,11 +79,6 @@ const data: {
             title: "Kuis",
             url: "#",
             items: [
-                {
-                    title: "Tambahkan Kuis",
-                    url: "#",
-                    route: ''
-                },
                 {
                     title: "Manajemen Kuis",
                     url: "#",
@@ -126,22 +106,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarHeader className="bg-white">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <div className="space-x-1">
-                                <div className="flex aspect-square size-20 items-center justify-center rounded-lg text-sidebar-primary-foreground">
-                                    <img src={ LogoJarkom } width={ 70 } alt="jarkom-jaya"/>
-                                </div>
-                                <span className="font-semibold text-lg">
-                                    Jarkom Jaya
-                                </span>
+                        <div className="px-3 flex gap-1 items-center">
+                            <div className="flex aspect-square size-16 items-center justify-center rounded-lg text-sidebar-primary-foreground">
+                                <img src={ LogoJarkom } width={ 80 } alt="jarkom-jaya"/>
                             </div>
-                        </SidebarMenuButton>
+                            <p className="font-semibold text-lg select-none">
+                                Jarkom Jaya
+                            </p>
+                        </div>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
             <SidebarContent className="bg-white">
                 <SidebarGroup>
                     <SidebarMenu>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton asChild isActive={ route().current() === 'admin.dashboard' }>
+                                <Link href={route('admin.dashboard')}>
+                                    Dashboard
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
                         { data.navMain.map((item) => (
                             <Collapsible
                                 key={item.title}

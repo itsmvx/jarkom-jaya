@@ -15,7 +15,9 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('nama');
             $table->foreignUuid('jenis_praktikum_id')->nullable()->constrained('jenis_praktikum')->onDelete('set null');
-            $table->foreignUuid('periode_id')->nullable()->constrained('periode')->onDelete('set null');
+            $table->foreignUuid('periode_praktikum_id')->nullable()->constrained('periode_praktikum')->onDelete('set null');
+            $table->year('tahun');
+            $table->boolean('status');
             $table->timestamps();
         });
     }

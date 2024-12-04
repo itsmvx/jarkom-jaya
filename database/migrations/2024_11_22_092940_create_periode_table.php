@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('periode', function (Blueprint $table) {
+        Schema::create('periode_praktikum', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('nama');
             $table->timestamps();
@@ -23,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('periode');
+        Schema::dropIfExists('periode_praktikum');
     }
 };

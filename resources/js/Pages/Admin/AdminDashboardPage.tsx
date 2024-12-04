@@ -189,7 +189,7 @@ export default function AdminDashboardPage() {
                     <Card className="flex flex-col w-full lg:w-1/3 lg:min-w-[23rem] h-[30rem] overflow-y-auto rounded">
                        <ScrollArea>
                            <CardHeader>
-                               <CardTitle>Aslab Aktif</CardTitle>
+                               <CardTitle>Aslab Aktif (SARAN KONTEN?)</CardTitle>
                                <CardDescription>
                                    { AslabAktif.length } Aslab aktif saat ini
                                </CardDescription>
