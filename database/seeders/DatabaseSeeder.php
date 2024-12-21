@@ -17,7 +17,9 @@ class DatabaseSeeder extends Seeder
             AslabSeeder::class,
             PraktikanSeeder::class,
             JenisPraktikumSeeder::class,
-            PeriodePraktikumSeeder::class
+            PeriodePraktikumSeeder::class,
+            LabelSeeder::class,
+
         ]);
     }
 }

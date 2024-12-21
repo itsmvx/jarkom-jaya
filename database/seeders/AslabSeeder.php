@@ -64,7 +64,7 @@ class AslabSeeder extends Seeder
                 'id' => Str::uuid(),
                 'nama' => $aslab['nama'],
                 'npm' => $aslab['npm'],
-                'no_hp' => $faker->phoneNumber,
+                'no_hp' => $faker->randomElement(['0857','0812','0858','0898','0838']).$faker->numerify('########'),
                 'username' => $aslab['username'],
                 'password' => Hash::make($aslab['username'], [ 'rounds' => 12 ]),
                 'created_at' => now(),

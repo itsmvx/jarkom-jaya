@@ -104,21 +104,8 @@ class PraktikumController extends Controller
             'jenis_praktikum_id' => 'required|exists:jenis_praktikum,id',
             'periode_praktikum_id' => 'required|exists:periode_praktikum,id',
         ], [
-            'id.required' => 'Format data Praktikum harus tidak valid!',
-            'id.exists' => 'Data Praktikum tidak ditemukan!',
-            'nama.required' => 'Nama Praktikum harus diisi!',
-            'nama.string' => 'Format Nama Praktikum tidak valid!',
-            'nama.unique' => 'Praktikum sudah terdaftar!',
-            'tahun.required' => 'Tahun Praktikum harus diisi!',
-            'tahun.integer' => 'Tahun Praktikum harus berupa angka!',
-            'tahun.min' => 'Tahun Praktikum tidak boleh kurang dari 1977!',
+            'tahun.min' => 'Tahun Praktikum tidak boleh sebelum dari 1977!',
             'tahun.max' => 'Tahun Praktikum tidak boleh lebih dari tahun Cyberpunk!',
-            'status.required' => 'Status Praktikum harus diisi!',
-            'status.boolean' => 'Format Status Praktikum tidak valid!',
-            'jenis_praktikum_id.required' => 'Jenis Praktikum harus dipilih!',
-            'jenis_praktikum_id.exists' => 'Jenis Praktikum tidak ditemukan!',
-            'periode_praktikum_id.required' => 'Periode Praktikum harus dipilih!',
-            'periode_praktikum_id.exists' => 'Periode Praktikum tidak ditemukan!',
         ]);
 
         try {
@@ -149,11 +136,6 @@ class PraktikumController extends Controller
         $validated = $request->validate([
             'id' => 'required|exists:praktikum,id',
             'status' => 'required|boolean',
-        ], [
-            'id.required' => 'Format Praktikum tidak valid!',
-            'id.exists' => 'Praktikum tidak ditemukan!',
-            'status.required' => 'Status Praktikum wajib diisi!',
-            'status.boolean' => 'Format Status Praktikum tidak valid!',
         ]);
 
         try {
@@ -180,10 +162,6 @@ class PraktikumController extends Controller
     {
         $validated = $request->validate([
             'id' => 'required|string|exists:praktikum,id',
-        ], [
-            'id.required' => 'Format data Praktikum tidak valid!',
-            'id.string' => 'Format data Praktikum tidak valid!',
-            'id.exists' => 'Data Praktikum tidak ditemukan!',
         ]);
 
         try {

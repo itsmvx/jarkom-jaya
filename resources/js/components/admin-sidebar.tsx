@@ -80,10 +80,21 @@ const data: {
             url: "#",
             items: [
                 {
+                    title: "Manajemen Label",
+                    url: route('admin.kuis.label.index'),
+                    route: 'admin.kuis.label.index'
+                },
+                {
+                    title: "Manajemen Soal",
+                    url: route('admin.kuis.soal.index'),
+                    route: 'admin.kuis.soal.index'
+                },
+                {
                     title: "Manajemen Kuis",
                     url: "#",
                     route: ''
                 },
+
             ],
         },
         {
@@ -100,7 +111,7 @@ const data: {
     ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
         <Sidebar {...props}>
             <SidebarHeader className="bg-white">

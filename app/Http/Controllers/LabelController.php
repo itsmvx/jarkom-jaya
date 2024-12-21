@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Praktikan;
+use App\Models\Label;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
 
-class PraktikanController extends Controller
+class LabelController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -33,29 +32,22 @@ class PraktikanController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nama' => 'required|string|min:1',
-            'npm' => 'required|string|min:1',
-            'username' => 'required|string|min:1|unique:praktikan,username',
-            'password' => 'required|string|min:1',
+            'nama' => 'required|string|unique:label_kuis,nama',
         ]);
 
         try {
-            Praktikan::create([
+            Label::create([
                 'id' => Str::uuid(),
-                'nama' => $validated['nama'],
-                'npm' => $validated['npm'],
-                'username' => $validated['username'],
-                'password' => Hash::make($validated['password'], ['rounds' => 12]),
+                'nama' => $validated['nama']
             ]);
-
             return Response::json([
-                'message' => 'Praktikan berhasil ditambahkan!',
+                'message' => 'Label Kuis berhasil ditambahkan!'
             ]);
         } catch (QueryException $exception) {
             return Response::json([
                 'message' => config('app.debug')
                     ? $exception->getMessage()
-                    : 'Server gagal memproses permintaan',
+                    : 'Server gagal memproses permintaan'
             ], 500);
         }
     }
@@ -82,27 +74,23 @@ class PraktikanController extends Controller
     public function update(Request $request)
     {
         $validated = $request->validate([
-            'id' => 'required|exists:praktikan,id',
-            'nama' => 'required|string|min:1',
-            'npm' => 'required|string|min:1',
-            'username' => 'required|string|min:1|unique:praktikan,username,' . $request->id,
+            'id' => 'required|exists:label_kuis,id',
+            'nama' => 'required|string',
         ]);
 
         try {
-            Praktikan::where('id', $validated['id'])->update([
-                'nama' => $validated['nama'],
-                'npm' => $validated['npm'],
-                'username' => $validated['username'],
+            $labelKuis = Label::findOrFail($validated['id']);
+            $labelKuis->update([
+                'nama' => $validated['nama']
             ]);
-
             return Response::json([
-                'message' => 'Praktikan berhasil diperbarui!',
+                'message' => 'Label Kuis berhasil diperbarui!'
             ]);
         } catch (QueryException $exception) {
             return Response::json([
                 'message' => config('app.debug')
                     ? $exception->getMessage()
-                    : 'Server gagal memproses permintaan',
+                    : 'Server gagal memproses permintaan'
             ], 500);
         }
     }
@@ -113,19 +101,20 @@ class PraktikanController extends Controller
     public function destroy(Request $request)
     {
         $validated = $request->validate([
-            'id' => 'required|exists:praktikan,id',
+            'id' => 'required|exists:label_kuis,id',
         ]);
 
         try {
-            Praktikan::where('id', $validated['id'])->delete();
+            $labelKuis = Label::findOrFail($validated['id']);
+            $labelKuis->delete();
             return Response::json([
-                'message' => 'Praktikan berhasil dihapus!',
+                'message' => 'Label Kuis berhasil dihapus!'
             ]);
         } catch (QueryException $exception) {
             return Response::json([
                 'message' => config('app.debug')
                     ? $exception->getMessage()
-                    : 'Server gagal memproses permintaan',
+                    : 'Server gagal memproses permintaan'
             ], 500);
         }
     }

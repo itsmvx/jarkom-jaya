@@ -11,11 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('nilai_praktikum_praktikan', function (Blueprint $table) {
+        Schema::create('kuis', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('praktikum_id')->constrained('praktikum')->cascadeOnDelete();
-            $table->foreignUuid('praktikan_id')->constrained('praktikan')->cascadeOnDelete();
-            $table->string('nilai')->comment('JSON Nilai');
             $table->timestamps();
         });
     }
@@ -25,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('nilai_praktikum_praktikan');
+        Schema::dropIfExists('kuis');
     }
 };

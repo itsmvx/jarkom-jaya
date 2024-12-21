@@ -6,73 +6,69 @@ import { CardDescription, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowBigLeft, Loader2, Shuffle } from "lucide-react";
+import { Loader2, Shuffle } from "lucide-react";
 import { z } from "zod";
 import axios, { AxiosError } from "axios";
 import { useToast } from "@/hooks/use-toast";
 import { PageProps } from "@/types";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-type Praktikan = {
+type Aslab = {
     id: string;
     nama: string;
     npm: string;
+    no_hp: string | null;
     username: string;
 };
 
-export default function AdminPraktikanUpdatePage({ praktikan  }: PageProps<{
-    praktikan: Praktikan;
+export default function AdminAslabUpdatePage({ aslab  }: PageProps<{
+    aslab: Aslab;
 }>) {
     const { toast } = useToast();
     type UpdateForm = {
         nama: string;
         npm: string;
+        no_hp: string;
         username: string;
         onSubmit: boolean;
     };
 
     const [ updateForm, setUpdateForm ] = useState<UpdateForm>({
-        nama: praktikan.nama,
-        npm: praktikan.npm,
-        username: praktikan.username,
+        nama: aslab.nama,
+        npm: aslab.npm,
+        no_hp: aslab.no_hp ?? '',
+        username: aslab.username,
         onSubmit: false
     });
     const [ isOnChange, setIsOnChange ] = useState(false);
 
     const handleUpdateForm = (key: keyof UpdateForm, value: string | boolean | number) => {
-        const payload = {
-            [key]: value,
-        };
-
         setUpdateForm((prevState) => {
-            const newState = { ...prevState, ...payload };
-            const latestState = {
-                nama: praktikan.nama,
-                npm: praktikan.npm,
-                username: praktikan.username,
-                onSubmit: false
-            }
-            if (JSON.stringify(newState) !== JSON.stringify(latestState)) {
-                setIsOnChange(true);
-            } else {
-                setIsOnChange(false);
-            }
-
+            const newState = { ...prevState, [key]: value };
+            setIsOnChange(
+                newState.nama !== aslab.nama ||
+                newState.npm !== aslab.npm ||
+                newState.no_hp !== (aslab.no_hp ?? '') ||
+                newState.username !== aslab.username
+            );
             return newState;
         });
     };
+
     const handleUpdateFormSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setUpdateForm((prevState) => ({ ...prevState, onSubmit: true }));
-        const { nama, npm, username } = updateForm;
+        const { nama, npm, no_hp, username } = updateForm;
         const createSchema = z.object({
-            nama: z.string({ message: 'Format nama Praktikan tidak valid! '}).min(1, { message: 'Nama Praktikan wajib diisi!' }),
-            npm: z.string({ message: 'Format NPM Praktikan tidak valid! '}).min(1, { message: 'NPM Praktikan wajib diisi!' }),
-            username: z.string({ message: 'Format Username Praktikan tidak valid! '}).min(1, { message: 'Username Praktikan wajib diisi!' }),
+            nama: z.string({ message: 'Format nama Aslab tidak valid! '}).min(1, { message: 'Nama Aslab wajib diisi!' }),
+            npm: z.string({ message: 'Format NPM Aslab tidak valid! '}).min(1, { message: 'NPM Aslab wajib diisi!' }),
+            username: z.string({ message: 'Format Username Aslab tidak valid! '}).min(1, { message: 'Username Aslab wajib diisi!' }),
+            no_hp: z.string().regex(/^\d{10,15}$/, { message: "Nomor HP harus berupa angka 08xxx 10-15 digit." }).nullable(),
         });
         const createParse = createSchema.safeParse({
             nama: nama,
             npm: npm,
+            no_hp: no_hp ?? null,
             username: username,
         });
         if (!createParse.success) {
@@ -88,11 +84,12 @@ export default function AdminPraktikanUpdatePage({ praktikan  }: PageProps<{
 
         axios.post<{
             message: string;
-        }>(route('praktikan.update'), {
-            id: praktikan.id,
+        }>(route('aslab.update'), {
+            id: aslab.id,
             nama: nama,
             npm: npm,
             username: username,
+            no_hp: no_hp ?? null,
         })
             .then((res) => {
                 toast({
@@ -101,7 +98,7 @@ export default function AdminPraktikanUpdatePage({ praktikan  }: PageProps<{
                     title: "Berhasil!",
                     description: res.data.message,
                 });
-                router.reload({ only: ['praktikan'] });
+                router.reload({ only: ['aslab'] });
                 setUpdateForm((prevState) => ({
                     ...prevState,
                     onSubmit: false
@@ -121,25 +118,28 @@ export default function AdminPraktikanUpdatePage({ praktikan  }: PageProps<{
             });
     };
     const handleSetUsername = () => {
-        const firstName: string = updateForm.nama.split(' ')[0].toLowerCase();
-        const nim: string | undefined = updateForm.npm.split('.').pop();
+        const firstName = updateForm.nama.trim().split(' ')[0].toLowerCase();
+        const nim = updateForm.npm.split('.').pop()?.trim();
         if (firstName && nim) {
             setUpdateForm((prevState) => ({
                 ...prevState,
-                username: firstName.concat(nim)
+                username: `${firstName}${nim}`
             }));
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Nama atau NPM tidak valid untuk membuat username."
+            });
         }
     };
 
     return (
         <>
             <AdminLayout>
-                <Head title="Admin - Memperbarui Praktikan" />
-                <Button variant="ghost" size="icon" onClick={ () => router.visit(route('admin.praktikan.index')) }>
-                    <ArrowBigLeft />
-                </Button>
+                <Head title="Admin - Memperbarui Aslab" />
                 <CardTitle>
-                    Memperbarui data Praktikan
+                    Memperbarui data Aslab
                 </CardTitle>
                 <CardDescription>
                     ...
@@ -147,7 +147,7 @@ export default function AdminPraktikanUpdatePage({ praktikan  }: PageProps<{
                 <form className={ cn("grid items-start gap-4") } onSubmit={ handleUpdateFormSubmit }>
                     <div className="flex flex-col md:flex-row md:flex-wrap gap-3 md:items-center *:grow">
                         <div className="grid gap-2 min-w-80">
-                            <Label htmlFor="nama">Nama Praktikan</Label>
+                            <Label htmlFor="nama">Nama Aslab</Label>
                             <Input
                                 type="text"
                                 name="nama"
@@ -157,7 +157,7 @@ export default function AdminPraktikanUpdatePage({ praktikan  }: PageProps<{
                             />
                         </div>
                         <div className="grid gap-2 min-w-80">
-                            <Label htmlFor="npm">NPM Praktikan</Label>
+                            <Label htmlFor="npm">NPM Aslab</Label>
                             <Input
                                 type="text"
                                 name="npm"
@@ -170,7 +170,7 @@ export default function AdminPraktikanUpdatePage({ praktikan  }: PageProps<{
                     </div>
                     <div className="flex flex-col md:flex-row md:flex-wrap gap-3 md:items-center *:grow">
                         <div className="grid gap-2 min-w-80">
-                            <Label htmlFor="username">Username Praktikan</Label>
+                            <Label htmlFor="username">Username Aslab</Label>
                             <div className="relative">
                                 <Input
                                     id="username"
@@ -206,16 +206,28 @@ export default function AdminPraktikanUpdatePage({ praktikan  }: PageProps<{
 
                             </div>
                         </div>
+                        <div className="grid gap-2 min-w-80">
+                            <Label htmlFor="npm">No.HP atau Wangsaff Aslab (tidak wajib)</Label>
+                            <Input
+                                type="text"
+                                name="no_hp"
+                                id="no_hp"
+                                placeholder="08xxxxxxxxxx"
+                                value={updateForm.no_hp}
+                                onChange={(event) => handleUpdateForm('no_hp', event.target.value.replace(/[^0-9]/g, ""))}
+                            />
+                        </div>
                     </div>
-                    <Button type="submit" disabled={ updateForm.onSubmit || !updateForm.nama || !updateForm.npm || !updateForm.username || !isOnChange }>
-                        { updateForm.onSubmit
-                            ? (
-                                <>Memproses <Loader2 className="animate-spin"/></>
-                            ) : (
-                                <span>Simpan</span>
-                            )
-                        }
+                    <Button type="submit" disabled={updateForm.onSubmit || !updateForm.nama || !updateForm.npm || !updateForm.username || !isOnChange}>
+                        {updateForm.onSubmit ? (
+                            <>
+                                Memproses <Loader2 className="animate-spin" />
+                            </>
+                        ) : (
+                            "Simpan"
+                        )}
                     </Button>
+
                 </form>
             </AdminLayout>
         </>

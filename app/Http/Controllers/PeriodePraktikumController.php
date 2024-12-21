@@ -33,10 +33,6 @@ class PeriodePraktikumController extends Controller
     {
         $validated = $request->validate([
             'nama' => 'required|string|unique:periode_praktikum,nama',
-        ], [
-            'nama.required' => 'Nama Periode Praktikum harus diisi!',
-            'nama.string' => 'Format Nama Periode Praktikum tidak valid!',
-            'nama.unique' => 'Periode Praktikum sudah terdaftar!',
         ]);
 
         try {

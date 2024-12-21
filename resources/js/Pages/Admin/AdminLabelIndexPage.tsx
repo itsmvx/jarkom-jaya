@@ -28,7 +28,7 @@ import { ArrowUpDown, MoreHorizontal, Plus, Loader2, Pencil, Trash2 } from "luci
 import { FormEvent, useState } from "react";
 import { ViewPerPage } from "@/components/view-per-page";
 import { TableSearchForm } from "@/components/table-search-form";
-import { cn, romanToNumber } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Head, router } from "@inertiajs/react";
@@ -54,13 +54,13 @@ import {
 } from "@/components/ui/dialog";
 import { PaginationData } from "@/types";
 
-type PeriodePraktikum = {
+type LabelKuis = {
     id: string;
     nama: string;
 };
 
-export default function AdminPeriodePraktikumIndexPage({ pagination }: {
-    pagination: PaginationData<PeriodePraktikum[]>;
+export default function AdminLabelIndexPage({ pagination }: {
+    pagination: PaginationData<LabelKuis[]>;
 }) {
     const { toast } = useToast();
     type CreateForm = {
@@ -101,7 +101,7 @@ export default function AdminPeriodePraktikumIndexPage({ pagination }: {
     const [ updateForm, setUpdateForm ] = useState<UpdateForm>(updateFormInit);
     const [ deleteForm, setDeleteForm ] = useState<DeleteForm>(deleteFormInit);
 
-    const columns: ColumnDef<PeriodePraktikum>[] = [
+    const columns: ColumnDef<LabelKuis>[] = [
         {
             accessorKey: "nama",
             header: ({ column }) => {
@@ -111,21 +111,16 @@ export default function AdminPeriodePraktikumIndexPage({ pagination }: {
                         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                         className="w-full justify-start"
                     >
-                        Nama Periode Praktikum
+                        Nama Label Kuis
                         <ArrowUpDown />
                     </Button>
                 );
             },
             cell: ({ row }) => (
-                <div className="capitalize min-w-36 px-2">
+                <div className="capitalize indent-2 min-w-36 px-2">
                     {row.getValue("nama")}
                 </div>
             ),
-            sortingFn: (rowA, rowB) => {
-                const valueA = romanToNumber(rowA.getValue<string>("nama"));
-                const valueB = romanToNumber(rowB.getValue<string>("nama"));
-                return valueA - valueB;
-            },
         },
         {
             id: "actions",
@@ -188,7 +183,7 @@ export default function AdminPeriodePraktikumIndexPage({ pagination }: {
         setCreateForm((prevState) => ({ ...prevState, onSubmit: true }));
         const { nama } = createForm;
         const namaSchema = z.object({
-            nama: z.string({ message: 'Format nama tidak valid! '}).min(1, { message: 'Nama Periode Praktikum wajib diisi!' }),
+            nama: z.string({ message: 'Format nama tidak valid! '}).min(1, { message: 'Nama Label Kuis wajib diisi!' }),
         });
         const namaParse = namaSchema.safeParse({
             nama: nama
@@ -206,7 +201,7 @@ export default function AdminPeriodePraktikumIndexPage({ pagination }: {
 
         axios.post<{
             message: string;
-        }>(route('periode-praktikum.create'), {
+        }>(route('label-kuis.create'), {
             nama: nama
         })
             .then((res) => {
@@ -232,13 +227,14 @@ export default function AdminPeriodePraktikumIndexPage({ pagination }: {
                 });
             });
     };
+    console.log(updateForm)
     const handleUpdateFormSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setUpdateForm((prevState) => ({ ...prevState, onSubmit: true }));
         const { id, nama } = updateForm;
         const updateSchema = z.object({
-            id: z.string({ message: 'Format Periode Praktikum tidak valid! '}).min(1, { message: 'Format Periode Praktikum tidak valid!' }),
-            nama: z.string({ message: 'Format nama tidak valid! '}).min(1, { message: 'Nama Periode Praktikum wajib diisi!' }),
+            id: z.string({ message: 'Format Label Kuis tidak valid! '}).min(1, { message: 'Format Label Kuis tidak valid!' }),
+            nama: z.string({ message: 'Format nama tidak valid! '}).min(1, { message: 'Nama Label Kuis wajib diisi!' }),
         });
         const updateParse = updateSchema.safeParse({
             id: id,
@@ -257,7 +253,7 @@ export default function AdminPeriodePraktikumIndexPage({ pagination }: {
 
         axios.post<{
             message: string;
-        }>(route('periode-praktikum.update'), {
+        }>(route('label-kuis.update'), {
             id: id,
             nama: nama
         })
@@ -289,7 +285,7 @@ export default function AdminPeriodePraktikumIndexPage({ pagination }: {
         setDeleteForm((prevState) => ({ ...prevState, onSubmit: true }));
         const { id } = deleteForm;
         const deleteSchema = z.object({
-            id: z.string({ message: 'Format Periode Praktikum tidak valid! '}).min(1, { message: 'Format Periode Praktikum tidak valid!' }),
+            id: z.string({ message: 'Format Label Kuis tidak valid! '}).min(1, { message: 'Format Label Kuis tidak valid!' }),
         });
         const deleteParse = deleteSchema.safeParse({
             id: id,
@@ -307,7 +303,7 @@ export default function AdminPeriodePraktikumIndexPage({ pagination }: {
 
         axios.post<{
             message: string;
-        }>(route('periode-praktikum.delete'), {
+        }>(route('label-kuis.delete'), {
             id: id,
         })
             .then((res) => {
@@ -336,12 +332,12 @@ export default function AdminPeriodePraktikumIndexPage({ pagination }: {
 
     return (
         <AdminLayout>
-            <Head title="Admin - Manajemen Periode Praktikum" />
+            <Head title="Admin - Manajemen Label Kuis" />
             <CardTitle>
-                Manajemen Periode Praktikum
+                Manajemen Label Kuis
             </CardTitle>
             <CardDescription>
-                Data Periode Praktikum yang terdaftar
+                Data Label Kuis yang terdaftar
             </CardDescription>
             <div className="flex flex-col lg:flex-row gap-2 items-start justify-between">
                 { useIsMobile() ? (
@@ -354,16 +350,16 @@ export default function AdminPeriodePraktikumIndexPage({ pagination }: {
                         <DrawerContent onOpenAutoFocus={(e) => e.preventDefault()}>
                             <DrawerHeader className="text-left">
                                 <DrawerTitle>
-                                    Tambah Periode Praktikum
+                                    Tambah Label Kuis
                                 </DrawerTitle>
                                 <DrawerDescription>
-                                    Periode praktikum seperti "XXXVIII" dalam angka romawi
+                                    Label kuis seperti "Sistem Operasi" dan "Modul 1"
                                 </DrawerDescription>
                             </DrawerHeader>
                             <div className="p-5">
                                 <form className={ cn("grid items-start gap-4") } onSubmit={ handleCreateFormSubmit }>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="nama">Nama Periode Praktikum</Label>
+                                        <Label htmlFor="nama">Nama Label Kuis</Label>
                                         <Input
                                             type="text"
                                             id="nama"
@@ -406,15 +402,15 @@ export default function AdminPeriodePraktikumIndexPage({ pagination }: {
                         <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={ (e) => e.preventDefault() }>
                             <DialogHeader>
                                 <DialogTitle>
-                                    Tambah Periode Praktikum
+                                    Tambah Label Kuis
                                 </DialogTitle>
                                 <DialogDescription>
-                                    Periode praktikum seperti "XXXVIII" dalam angka romawi
+                                    Label kuis seperti <strong>Sistem Operasi</strong> dan <strong>Modul 1</strong>
                                 </DialogDescription>
                             </DialogHeader>
                             <form className={ cn("grid items-start gap-4") } onSubmit={ handleCreateFormSubmit }>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="nama">Nama Periode Praktikum</Label>
+                                    <Label htmlFor="nama">Nama Label Kuis</Label>
                                     <Input
                                         type="text"
                                         name="nama"
@@ -519,16 +515,16 @@ export default function AdminPeriodePraktikumIndexPage({ pagination }: {
                     <DrawerContent onOpenAutoFocus={(e) => e.preventDefault()}>
                         <DrawerHeader className="text-left">
                             <DrawerTitle>
-                                Update Periode Praktikum
+                                Update Label Kuis
                             </DrawerTitle>
                             <DrawerDescription>
-                                Anda akan mengubah nama Periode Praktikum
+                                Anda akan mengubah nama Label Kuis
                             </DrawerDescription>
                         </DrawerHeader>
                         <div className="p-5">
                             <form className={ cn("grid items-start gap-4") } onSubmit={ handleUpdateFormSubmit }>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="nama">Nama Periode Praktikum</Label>
+                                    <Label htmlFor="nama">Nama Label Kuis</Label>
                                     <Input
                                         type="text"
                                         id="nama"
@@ -566,15 +562,15 @@ export default function AdminPeriodePraktikumIndexPage({ pagination }: {
                     <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={ (e) => e.preventDefault() }>
                         <DialogHeader>
                             <DialogTitle>
-                                Update Periode Praktikum
+                                Update Label Kuis
                             </DialogTitle>
                             <DialogDescription>
-                                Anda akan mengubah nama Periode Praktikum
+                                Anda akan mengubah nama Label Kuis
                             </DialogDescription>
                         </DialogHeader>
                         <form className={ cn("grid items-start gap-4") } onSubmit={ handleUpdateFormSubmit }>
                             <div className="grid gap-2">
-                                <Label htmlFor="nama">Nama Periode Praktikum</Label>
+                                <Label htmlFor="nama">Nama Label Kuis</Label>
                                 <Input
                                     type="text"
                                     name="nama"
@@ -607,11 +603,11 @@ export default function AdminPeriodePraktikumIndexPage({ pagination }: {
                     <DrawerContent onOpenAutoFocus={(e) => e.preventDefault()}>
                         <DrawerHeader className="text-left">
                             <DrawerTitle>
-                                Hapus Periode Praktikum
+                                Hapus Label Kuis
                             </DrawerTitle>
                             <DrawerDescription>
                                 <p className="text-red-600 font-bold">
-                                    Anda akan menghapus Periode Praktikum!
+                                    Anda akan menghapus Label Kuis!
                                 </p>
                                 <p className="*:text-red-600">
                                     Semua data praktikum yang termasuk periode <strong>{ deleteForm.nama }</strong> akan
@@ -668,11 +664,11 @@ export default function AdminPeriodePraktikumIndexPage({ pagination }: {
                     <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={ (e) => e.preventDefault() }>
                         <DialogHeader>
                             <DialogTitle>
-                                Hapus Periode Praktikum
+                                Hapus Label Kuis
                             </DialogTitle>
                             <DialogDescription className="flex flex-col gap-0.5">
                                 <p className="text-red-600 font-bold">
-                                    Anda akan menghapus Periode Praktikum!
+                                    Anda akan menghapus Label Kuis!
                                 </p>
                                 <p className="*:text-red-600">
                                     Semua data praktikum yang termasuk periode <strong>{ deleteForm.nama }</strong> akan

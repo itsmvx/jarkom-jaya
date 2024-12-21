@@ -12,13 +12,14 @@ import axios, { AxiosError } from "axios";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-export default function AdminPraktikanCreatePage() {
+export default function AdminAslabCreatePage() {
     const { toast } = useToast();
     type CreateForm = {
         nama: string;
         npm: string;
         username: string;
         password: string;
+        noHp: string;
         showPassword: boolean;
         onSubmit: boolean;
     };
@@ -27,6 +28,7 @@ export default function AdminPraktikanCreatePage() {
         npm: '',
         username: '',
         password: '',
+        noHp: '',
         showPassword: false,
         onSubmit: false
     };
@@ -37,10 +39,10 @@ export default function AdminPraktikanCreatePage() {
         setCreateForm((prevState) => ({ ...prevState, onSubmit: true }));
         const { nama, npm, username, password } = createForm;
         const createSchema = z.object({
-            nama: z.string({ message: 'Format nama Praktikan tidak valid! '}).min(1, { message: 'Nama Praktikan wajib diisi!' }),
-            npm: z.string({ message: 'Format NPM Praktikan tidak valid! '}).min(1, { message: 'NPM Praktikan wajib diisi!' }),
-            username: z.string({ message: 'Format Username Praktikan tidak valid! '}).min(1, { message: 'Username Praktikan wajib diisi!' }),
-            password: z.string({ message: 'Format Password Praktikan tidak valid! '}).min(1, { message: 'Password Praktikan wajib diisi!' }),
+            nama: z.string({ message: 'Format nama Aslab tidak valid! '}).min(1, { message: 'Nama Aslab wajib diisi!' }),
+            npm: z.string({ message: 'Format NPM Aslab tidak valid! '}).min(1, { message: 'NPM Aslab wajib diisi!' }),
+            username: z.string({ message: 'Format Username Aslab tidak valid! '}).min(1, { message: 'Username Aslab wajib diisi!' }),
+            password: z.string({ message: 'Format Password Aslab tidak valid! '}).min(1, { message: 'Password Aslab wajib diisi!' }),
         });
         const createParse = createSchema.safeParse({
             nama: nama,
@@ -61,7 +63,7 @@ export default function AdminPraktikanCreatePage() {
 
         axios.post<{
             message: string;
-        }>(route('praktikan.create'), {
+        }>(route('aslab.create'), {
             nama: nama,
             npm: npm,
             username: username,
@@ -75,7 +77,7 @@ export default function AdminPraktikanCreatePage() {
                     title: "Berhasil!",
                     description: res.data.message,
                 });
-                router.visit(route('admin.praktikan.index'));
+                router.visit(route('admin.aslab.index'));
             })
             .catch((err: unknown) => {
                 const errMsg: string = err instanceof AxiosError && err.response?.data?.message
@@ -90,33 +92,39 @@ export default function AdminPraktikanCreatePage() {
             });
     };
     const handleSetUsername = () => {
-        const firstName: string = createForm.nama.split(' ')[0].toLowerCase();
-        const nim: string | undefined = createForm.npm.split('.').pop();
+        const firstName = createForm.nama.trim().split(' ')[0].toLowerCase();
+        const nim = createForm.npm.split('.').pop()?.trim();
         if (firstName && nim) {
             setCreateForm((prevState) => ({
                 ...prevState,
-                username: firstName.concat(nim)
+                username: `${firstName}${nim}`
             }));
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Nama atau NPM tidak valid untuk membuat username."
+            });
         }
     };
 
     return (
         <>
             <AdminLayout>
-                <Head title="Admin - Menambahkan Praktikan" />
-                <Button variant="ghost" size="icon" onClick={ () => router.visit(route('admin.praktikan.index')) }>
+                <Head title="Admin - Menambahkan Aslab" />
+                <Button variant="ghost" size="icon" onClick={ () => router.visit(route('admin.aslab.index')) }>
                     <ArrowBigLeft />
                 </Button>
                 <CardTitle>
-                    Menambahkan Praktikan
+                    Menambahkan Aslab
                 </CardTitle>
                 <CardDescription>
-                    Menambahkan data Praktikan baru
+                    Menambahkan data Aslab baru
                 </CardDescription>
                 <form className={ cn("grid items-start gap-4") } onSubmit={ handleCreateFormSubmit }>
                     <div className="flex flex-col md:flex-row md:flex-wrap gap-3 md:items-center *:grow">
                         <div className="grid gap-2 min-w-80">
-                            <Label htmlFor="nama">Nama Praktikan</Label>
+                            <Label htmlFor="nama">Nama Aslab</Label>
                             <Input
                                 type="text"
                                 name="nama"
@@ -131,7 +139,7 @@ export default function AdminPraktikanCreatePage() {
                             />
                         </div>
                         <div className="grid gap-2 min-w-80">
-                            <Label htmlFor="npm">NPM Praktikan</Label>
+                            <Label htmlFor="npm">NPM Aslab</Label>
                             <Input
                                 type="text"
                                 name="npm"
@@ -149,7 +157,7 @@ export default function AdminPraktikanCreatePage() {
                     </div>
                     <div className="flex flex-col md:flex-row md:flex-wrap gap-3 md:items-center *:grow">
                         <div className="grid gap-2 min-w-80">
-                            <Label htmlFor="username">Username Praktikan</Label>
+                            <Label htmlFor="username">Username Aslab</Label>
                             <div className="relative">
                                 <Input
                                     id="username"
@@ -223,7 +231,24 @@ export default function AdminPraktikanCreatePage() {
                             </div>
                         </div>
                     </div>
-                    <Button type="submit" disabled={ createForm.onSubmit || !createForm.nama || !createForm.npm || !createForm.username || !createForm.password }>
+                    <div className="grid gap-2 min-w-80">
+                        <Label htmlFor="npm">No.HP atau Wangsaff Aslab (tidak wajib)</Label>
+                        <Input
+                            type="text"
+                            name="no_hp"
+                            id="no_hp"
+                            placeholder="08xxxxxxxxxx"
+                            value={ createForm.noHp }
+                            onChange={ (event) =>
+                                setCreateForm((prevState) => ({
+                                    ...prevState,
+                                    noHp: event.target.value.replace(/[^0-9]/g, ""),
+                                }))
+                            }
+                        />
+                    </div>
+                    <Button type="submit"
+                            disabled={ createForm.onSubmit || !createForm.nama || !createForm.npm || !createForm.username || !createForm.password }>
                         { createForm.onSubmit
                             ? (
                                 <>Memproses <Loader2 className="animate-spin"/></>

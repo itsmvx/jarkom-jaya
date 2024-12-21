@@ -1,4 +1,4 @@
-import { AppLayout } from "@/layouts/AppLayout";
+import { AdminLayout } from "@/layouts/AdminLayout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, BookOpenText, FolderSync } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -73,7 +73,7 @@ export default function AdminDashboardPage() {
 
     return (
         <>
-            <AppLayout>
+            <AdminLayout>
                 <Head title="Admin - Dashboard" />
                 <div className="flex flex-col lg:flex-row gap-3">
                     <Card className="flex flex-col w-full lg:w-2/3 lg:min-w-[26rem] h-[27rem] lg:h-[32rem] overflow-y-auto rounded">
@@ -100,9 +100,7 @@ export default function AdminDashboardPage() {
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger>
-                                                        <Button>
-                                                            <FolderSync/>
-                                                        </Button>
+                                                        <FolderSync/>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
                                                         Detail Kuis
@@ -221,7 +219,7 @@ export default function AdminDashboardPage() {
                        </ScrollArea>
                     </Card>
                 </div>
-            </AppLayout>
+            </AdminLayout>
         </>
     )
 }

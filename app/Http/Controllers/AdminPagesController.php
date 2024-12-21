@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Aslab;
 use App\Models\JenisPraktikum;
+use App\Models\Label;
 use App\Models\PeriodePraktikum;
 use App\Models\Praktikan;
 use App\Models\Praktikum;
+use App\Models\Soal;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -22,30 +24,7 @@ class AdminPagesController extends Controller
     {
         return Inertia::render('Admin/AdminDashboardPage');
     }
-    public function aslabIndexPage(Request $request)
-    {
-        $viewList = [ "10", "25", "50", "100" ];
-        $viewPerPage = $request->query('view');
 
-        if (!in_array($viewPerPage, $viewList)) {
-            $viewPerPage = 10;
-        } else {
-            $viewPerPage = intval($viewPerPage);
-        }
-
-        $query = Aslab::select('id', 'nama', 'npm', 'username', 'avatar', 'created_at')->orderBy('created_at', 'desc');
-
-        $search = $request->query('search');
-        if ($search) {
-            $query->where('nama', 'like', '%' . $search . '%');
-        }
-
-        $aslabs = $query->paginate($viewPerPage)->withQueryString();
-
-        return Inertia::render('Admin/AdminAslabIndexPage', [
-            'pagination' => fn() => $aslabs,
-        ]);
-    }
     public function jenisPraktikumIndexPage(Request $request)
     {
         $viewList = [ "10", "25", "50", "100" ];
@@ -162,7 +141,7 @@ class AdminPagesController extends Controller
             $viewPerPage = intval($viewPerPage);
         }
 
-        $query = Praktikan::select('id', 'nama', 'npm', 'username')->orderBy('created_at', 'desc');
+        $query = Praktikan::select('id', 'nama', 'npm', 'username', 'avatar')->orderBy('created_at', 'desc');
 
         $search = $request->query('search');
         if ($search) {
@@ -195,5 +174,109 @@ class AdminPagesController extends Controller
         } catch (QueryException $exception) {
             abort(500);
         }
+    }
+
+
+    public function aslabIndexPage(Request $request)
+    {
+        $viewList = [ "10", "25", "50", "100" ];
+        $viewPerPage = $request->query('view');
+
+        if (!in_array($viewPerPage, $viewList)) {
+            $viewPerPage = 10;
+        } else {
+            $viewPerPage = intval($viewPerPage);
+        }
+
+        $query = Aslab::select('id', 'nama', 'npm', 'username', 'no_hp', 'avatar')->orderBy('created_at', 'desc');
+
+        $search = $request->query('search');
+        if ($search) {
+            $query->where('nama', 'like', '%' . $search . '%');
+        }
+
+        $aslabs = $query->paginate($viewPerPage)->withQueryString();
+
+        return Inertia::render('Admin/AdminAslabIndexPage', [
+            'pagination' => fn() => $aslabs,
+        ]);
+    }
+    public function aslabCreatePage()
+    {
+        return Inertia::render('Admin/AdminAslabCreatePage');
+    }
+    public function aslabUpdatePage(Request $request)
+    {
+        $idParam = $request->query->get('q');
+        if (!$idParam) {
+            abort(404);
+        }
+
+        try {
+            $aslab = Aslab::findOrFail($idParam);
+
+            return Inertia::render('Admin/AdminAslabUpdatePage', [
+                'aslab' => fn() => $aslab->only(['id', 'nama', 'npm', 'no_hp', 'username']),
+            ]);
+        } catch (QueryException $exception) {
+            abort(500);
+        }
+    }
+
+    public function labelIndexPage(Request $request)
+    {
+        $viewList = [ "10", "25", "50", "100" ];
+        $viewPerPage = $request->query('view');
+
+        if (!in_array($viewPerPage, $viewList)) {
+            $viewPerPage = 10;
+        } else {
+            $viewPerPage = intval($viewPerPage);
+        }
+
+        $query = Label::select('id', 'nama')->orderBy('created_at', 'desc');
+
+        $search = $request->query('search');
+        if ($search) {
+            $query->where('nama', 'like', '%' . $search . '%');
+        }
+
+        $labelKuis = $query->paginate($viewPerPage)->withQueryString();
+
+        return Inertia::render('Admin/AdminLabelIndexPage', [
+            'pagination' => fn() => $labelKuis,
+        ]);
+    }
+    public function soalIndexPage(Request $request)
+    {
+        $viewList = [ "10", "25", "50", "100" ];
+        $viewPerPage = $request->query('view');
+
+        if (!in_array($viewPerPage, $viewList)) {
+            $viewPerPage = 10;
+        } else {
+            $viewPerPage = intval($viewPerPage);
+        }
+
+        $query = Soal::select('id', 'pertanyaan', 'pilihan_jawaban', 'kunci_jawaban')
+            ->with('label:id,nama')
+            ->orderBy('created_at', 'desc');
+
+        $search = $request->query('search');
+        if ($search) {
+            $query->where('nama', 'like', '%' . $search . '%');
+        }
+
+        $soalKuis = $query->paginate($viewPerPage)->withQueryString();
+
+        return Inertia::render('Admin/AdminSoalIndexPage', [
+            'pagination' => fn() => $soalKuis,
+        ]);
+    }
+    public function soalCreatePage()
+    {
+        return Inertia::render('Admin/AdminSoalCreatePage', [
+            'labels' => fn() => Label::select('id', 'nama')->orderBy('created_at', 'desc')->get(),
+        ]);
     }
 }

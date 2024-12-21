@@ -25,7 +25,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, MoreHorizontal, Pencil, BookMarked, Trash2, Plus, Loader2 } from "lucide-react"
+import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Plus, Loader2 } from "lucide-react"
 import { FormEvent, useState } from "react";
 import { ViewPerPage } from "@/components/view-per-page";
 import { TableSearchForm } from "@/components/table-search-form";
@@ -42,42 +42,48 @@ import {
     DrawerHeader,
     DrawerTitle
 } from "@/components/ui/drawer";
-import { cn } from "@/lib/utils";
+import { cn, deltaParse, RenderQuillDelta } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { z } from "zod";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 
-type Praktikan = {
+type Soal = {
     id: string;
-    nama: string;
-    npm: string;
-    username: string;
-    avatar: string | null;
+    pertanyaan: string;
+    pilihan_jawaban: {
+        value: string;
+        label: string;
+    }[];
+    kunci_jawaban: string;
+    label: {
+        id: string;
+        nama: string;
+    }[];
 };
-export default function AdminPraktikanIndexPage({ pagination }: {
-    pagination: PaginationData<Praktikan[]>;
+export default function AdminSoalIndexPage({ pagination }: {
+    pagination: PaginationData<Soal[]>;
 }) {
 
     const { toast } = useToast();
     type DeleteForm = {
         id: string;
-        nama: string;
         validation: string;
         onSubmit: boolean;
     };
     const deleteFormInit: DeleteForm = {
         id: '',
-        nama: '',
         validation: '',
         onSubmit: false
     };
     const [ openDeleteForm, setOpenDeleteForm ] = useState(false);
     const [ deleteForm, setDeleteForm ] = useState<DeleteForm>(deleteFormInit);
 
-    const columns: ColumnDef<Praktikan>[] = [
+    const columns: ColumnDef<Soal>[] = [
         {
-            accessorKey: "nama",
+            accessorKey: "label",
             header: ({ column }) => {
                 return (
                     <Button
@@ -85,15 +91,30 @@ export default function AdminPraktikanIndexPage({ pagination }: {
                         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                         className="w-full justify-start "
                     >
-                        Nama
+                        Label
                         <ArrowUpDown />
                     </Button>
                 )
             },
-            cell: ({ row }) => <div className="capitalize min-w-52 px-2">{row.getValue("nama")}</div>,
+            cell: ({ row }) => {
+                const labelArr = row.original.label;
+                return (
+                    <div className="pl-3 flex flex-wrap gap-2 w-40 overflow-hidden">
+                        { labelArr && labelArr.length > 0 ? (
+                            labelArr.map((label) => (
+                                <Badge key={ label.id } className="py-1 px-2 text-xs">
+                                    { label.nama }
+                                </Badge>
+                            ))
+                        ) : (
+                            <span className="text-gray-500 italic">Tidak ada label</span>
+                        ) }
+                    </div>
+                );
+            },
         },
         {
-            accessorKey: "npm",
+            accessorKey: "kode",
             header: ({ column }) => {
                 return (
                     <Button
@@ -101,17 +122,34 @@ export default function AdminPraktikanIndexPage({ pagination }: {
                         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                         className="w-full justify-start items-start"
                     >
-                        NPM
+                        Kode Soal
                         <ArrowUpDown />
                     </Button>
                 )
             },
-            cell: ({ row }) => <div className="lowercase min-w-20">{row.getValue("npm")}</div>,
+            cell: ({ row }) => <p className="lowercase min-w-28 w-min indent-4 text-ellipsis line-clamp-1">{row.getValue("kode")}</p>,
         },
         {
-            accessorKey: "username",
-            header: () => <div className="">Username</div>,
-            cell: ({ row }) => <div className={ `lowercase min-w-20 ${row.getValue('username') ? 'indent-0' : 'indent-4'}` }>{row.getValue("username") ?? '-'}</div>,
+            accessorKey: "pertanyaan",
+            header: () => <div className="min-w-64">Pertanyaan</div>,
+            cell: ({ row }) => {
+                return (
+                    <>
+                        <Accordion type="single" collapsible className="w-full">
+                            <AccordionItem value="item-1">
+                                <AccordionTrigger>Lihat pertanyaan</AccordionTrigger>
+                                <AccordionContent>
+                                    <RenderQuillDelta
+                                        delta={deltaParse(row.original.pertanyaan)}
+                                        className="!items-start justify-center"
+                                    />
+                                </AccordionContent>
+                            </AccordionItem>
+                        </Accordion>
+
+                    </>
+                )
+            },
         },
         {
             id: "actions",
@@ -128,10 +166,7 @@ export default function AdminPraktikanIndexPage({ pagination }: {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={ () => router.visit(route('admin.praktikan.nilai', { q: originalRow.id })) }>
-                                <BookMarked />Histori nilai
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={ () => router.visit(route('admin.praktikan.update', { q: originalRow.id })) }>
+                            <DropdownMenuItem onClick={ () => router.visit(route('admin.aslab.update', { q: originalRow.id })) }>
                                 <Pencil /> Ubah data
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={ () => {
@@ -139,7 +174,6 @@ export default function AdminPraktikanIndexPage({ pagination }: {
                                 setDeleteForm((prevState) => ({
                                     ...prevState,
                                     id: originalRow.id,
-                                    nama: originalRow.nama
                                 }));
                             } }>
                                 <Trash2 /> Hapus data
@@ -172,7 +206,7 @@ export default function AdminPraktikanIndexPage({ pagination }: {
         setDeleteForm((prevState) => ({ ...prevState, onSubmit: true }));
         const { id } = deleteForm;
         const deleteSchema = z.object({
-            id: z.string({ message: 'Format Praktikan tidak valid! '}).min(1, { message: 'Format Praktikan tidak valid!' }),
+            id: z.string({ message: 'Format Soal Kuis tidak valid! '}).min(1, { message: 'Format Soal Kuis tidak valid!' }),
         });
         const deleteParse = deleteSchema.safeParse({
             id: id,
@@ -190,7 +224,7 @@ export default function AdminPraktikanIndexPage({ pagination }: {
 
         axios.post<{
             message: string;
-        }>(route('praktikan.delete'), {
+        }>(route('soal.delete'), {
             id: id,
         })
             .then((res) => {
@@ -219,15 +253,15 @@ export default function AdminPraktikanIndexPage({ pagination }: {
 
     return (
         <AdminLayout>
-            <Head title="Admin - Manajemen Praktikan" />
+            <Head title="Admin - Manajemen SoalKuis" />
             <CardTitle>
-                Manajemen Praktikan
+                Manajemen Soal Kuis
             </CardTitle>
             <CardDescription>
-                Data Praktikan
+                Data Soal Kuis
             </CardDescription>
             <div className="flex flex-col lg:flex-row gap-2 items-start justify-between">
-                <Button className="mt-4" onClick={ () => router.visit(route('admin.praktikan.create')) }>
+                <Button className="mt-4" onClick={ () => router.visit(route('admin.kuis.soal.create')) }>
                     Buat <Plus />
                 </Button>
                 <TableSearchForm table={ table }/>
@@ -310,19 +344,19 @@ export default function AdminPraktikanIndexPage({ pagination }: {
                     <DrawerContent onOpenAutoFocus={ (e) => e.preventDefault() }>
                         <DrawerHeader className="text-left">
                             <DrawerTitle>
-                                Hapus Praktikan
+                                Hapus SoalKuis
                             </DrawerTitle>
                             <DrawerDescription>
-                                <p className="text-red-600 font-bold">
-                                    Anda akan menghapus Praktikan!
-                                </p>
-                                <p className="*:text-red-600">
-                                    Semua data Praktikan <strong>{ deleteForm.nama }</strong> seperti nilai kuis dan sebagainya akan juga terhapus
-                                </p>
+                                <span className="text-red-600 font-bold">
+                                    Anda akan menghapus Soal Kuis!
+                                </span>
+                                <span className="*:text-red-600">
+                                    Data Soal Kuis akan dihapus
+                                </span>
                                 <br/>
-                                <p className="text-red-600">
+                                <span className="text-red-600">
                                     Data yang terhapus tidak akan bisa dikembalikan! harap gunakan dengan hati-hati
-                                </p>
+                                </span>
                             </DrawerDescription>
                         </DrawerHeader>
                         <div className="p-5">
@@ -371,19 +405,19 @@ export default function AdminPraktikanIndexPage({ pagination }: {
                     <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={ (e) => e.preventDefault() }>
                         <DialogHeader>
                             <DialogTitle>
-                                Hapus Praktikan
+                                Hapus Soal Kuis
                             </DialogTitle>
                             <DialogDescription className="flex flex-col gap-0.5">
-                                <p className="text-red-600 font-bold">
-                                    Anda akan menghapus Praktikan!
-                                </p>
-                                <p className="*:text-red-600">
-                                    Semua data Praktikan <strong>{ deleteForm.nama }</strong> seperti nilai kuis dan sebagainya akan juga terhapus
-                                </p>
+                                <span className="text-red-600 font-bold">
+                                    Anda akan menghapus Soal Kuis!
+                                </span>
+                                <span className="*:text-red-600">
+                                    Data Soal Kuis akan dihapus
+                                </span>
                                 <br/>
-                                <p className="text-red-600">
+                                <span className="text-red-600">
                                     Data yang terhapus tidak akan bisa dikembalikan! harap gunakan dengan hati-hati
-                                </p>
+                                </span>
                             </DialogDescription>
                         </DialogHeader>
                         <form className={ cn("grid items-start gap-4") } onSubmit={ handleDeleteFormSubmit }>

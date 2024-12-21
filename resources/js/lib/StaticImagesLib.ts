@@ -1,4 +1,4 @@
-import LogoJarkom from "@/assets/logo-jarkom.png";
+import LogoJarkom from "@/assets/logo-jarkom-new.webp";
 import MahiruCirle from "@/assets/mahiru-circle.png";
 import MahiruStandart from "@/assets/mahiru-standart.jpeg";
 import LandingPrak from "@/assets/landing-prak.webp";

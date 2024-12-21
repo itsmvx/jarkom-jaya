@@ -1,13 +1,13 @@
 import { Label } from "@/components/ui/label";
 import { YearPicker } from "@/components/year-picker";
 import { FormEvent, useEffect, useState } from "react";
-import { AppLayout } from "@/layouts/AppLayout";
+import { AdminLayout } from "@/layouts/AdminLayout";
 import { Head, router } from "@inertiajs/react";
 import { CardDescription, CardTitle } from "@/components/ui/card";
 import { cn, romanToNumber } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Check, Loader2, X } from "lucide-react";
+import { ArrowBigLeft, Check, Loader2, X } from "lucide-react";
 import { z } from "zod";
 import axios, { AxiosError } from "axios";
 import { useToast } from "@/hooks/use-toast";
@@ -119,8 +119,11 @@ export default function AdminPraktikumCreatePage({ currentDate, jenisPraktikums,
 
     return (
         <>
-            <AppLayout>
+            <AdminLayout>
                 <Head title="Admin - Menambahkan Praktikum" />
+                <Button variant="ghost" size="icon" onClick={ () => router.visit(route('admin.praktikum.index')) }>
+                    <ArrowBigLeft />
+                </Button>
                 <CardTitle>
                     Menambahkan Praktikum
                 </CardTitle>
@@ -223,7 +226,7 @@ export default function AdminPraktikumCreatePage({ currentDate, jenisPraktikums,
                         }
                     </Button>
                 </form>
-            </AppLayout>
+            </AdminLayout>
         </>
     );
 }

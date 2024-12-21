@@ -1,4 +1,4 @@
-import { AppSidebar } from "@/components/app-sidebar"
+import { AdminSidebar } from "@/components/admin-sidebar"
 import { Separator } from "@/components/ui/separator"
 import {
     SidebarInset,
@@ -10,12 +10,12 @@ import { Card } from "@/components/ui/card";
 import { Footer } from "@/components/app-footer";
 import { Toaster } from "@/components/ui/toaster";
 
-export const AppLayout = ({ children }: {
+export const AdminLayout = ({ children }: {
     children: ReactNode;
 }) => {
     return (
         <SidebarProvider>
-            <AppSidebar />
+            <AdminSidebar />
             <SidebarInset>
                 <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
                     <SidebarTrigger className="-ml-1"/>
@@ -27,8 +27,8 @@ export const AppLayout = ({ children }: {
                         { children }
                     </Card>
                 </div>
-                <Footer />
-                <Toaster />
+                <Footer/>
+                <Toaster/>
             </SidebarInset>
         </SidebarProvider>
     )

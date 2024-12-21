@@ -14,7 +14,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { AppLayout } from "@/layouts/AppLayout";
+import { AdminLayout } from "@/layouts/AdminLayout";
 import { Button } from "@/components/ui/button"
 import { CardDescription, CardTitle } from "@/components/ui/card";
 import {
@@ -326,7 +326,7 @@ export default function AdminPraktikumIndexPage({ pagination }: {
 
 
     return (
-        <AppLayout>
+        <AdminLayout>
             <Head title="Admin - Manajemen Praktikum" />
             <CardTitle>
                 Manajemen Praktikum
@@ -517,6 +517,6 @@ export default function AdminPraktikumIndexPage({ pagination }: {
                 </Dialog>
             ) }
             {/*---DELETE-FORM---*/ }
-        </AppLayout>
+        </AdminLayout>
     );
 }
