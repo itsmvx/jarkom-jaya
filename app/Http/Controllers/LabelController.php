@@ -74,7 +74,7 @@ class LabelController extends Controller
     public function update(Request $request)
     {
         $validated = $request->validate([
-            'id' => 'required|exists:label_kuis,id',
+            'id' => 'required|exists:label,id',
             'nama' => 'required|string',
         ]);
 
@@ -101,7 +101,7 @@ class LabelController extends Controller
     public function destroy(Request $request)
     {
         $validated = $request->validate([
-            'id' => 'required|exists:label_kuis,id',
+            'id' => 'required|exists:label,id',
         ]);
 
         try {
