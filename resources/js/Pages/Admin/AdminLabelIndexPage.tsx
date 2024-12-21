@@ -54,13 +54,11 @@ import {
 } from "@/components/ui/dialog";
 import { PaginationData } from "@/types";
 
-type LabelKuis = {
-    id: string;
-    nama: string;
-};
-
 export default function AdminLabelIndexPage({ pagination }: {
-    pagination: PaginationData<LabelKuis[]>;
+    pagination: PaginationData<{
+        id: string;
+        nama: string;
+    }[]>;
 }) {
     const { toast } = useToast();
     type CreateForm = {
@@ -101,7 +99,10 @@ export default function AdminLabelIndexPage({ pagination }: {
     const [ updateForm, setUpdateForm ] = useState<UpdateForm>(updateFormInit);
     const [ deleteForm, setDeleteForm ] = useState<DeleteForm>(deleteFormInit);
 
-    const columns: ColumnDef<LabelKuis>[] = [
+    const columns: ColumnDef<{
+        id: string;
+        nama: string;
+    }>[] = [
         {
             accessorKey: "nama",
             header: ({ column }) => {
@@ -111,7 +112,7 @@ export default function AdminLabelIndexPage({ pagination }: {
                         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                         className="w-full justify-start"
                     >
-                        Nama Label Kuis
+                        Nama Label
                         <ArrowUpDown />
                     </Button>
                 );
@@ -183,7 +184,7 @@ export default function AdminLabelIndexPage({ pagination }: {
         setCreateForm((prevState) => ({ ...prevState, onSubmit: true }));
         const { nama } = createForm;
         const namaSchema = z.object({
-            nama: z.string({ message: 'Format nama tidak valid! '}).min(1, { message: 'Nama Label Kuis wajib diisi!' }),
+            nama: z.string({ message: 'Format nama tidak valid! '}).min(1, { message: 'Nama Label wajib diisi!' }),
         });
         const namaParse = namaSchema.safeParse({
             nama: nama
@@ -201,7 +202,7 @@ export default function AdminLabelIndexPage({ pagination }: {
 
         axios.post<{
             message: string;
-        }>(route('label-kuis.create'), {
+        }>(route('label.create'), {
             nama: nama
         })
             .then((res) => {
@@ -227,14 +228,13 @@ export default function AdminLabelIndexPage({ pagination }: {
                 });
             });
     };
-    console.log(updateForm)
     const handleUpdateFormSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setUpdateForm((prevState) => ({ ...prevState, onSubmit: true }));
         const { id, nama } = updateForm;
         const updateSchema = z.object({
-            id: z.string({ message: 'Format Label Kuis tidak valid! '}).min(1, { message: 'Format Label Kuis tidak valid!' }),
-            nama: z.string({ message: 'Format nama tidak valid! '}).min(1, { message: 'Nama Label Kuis wajib diisi!' }),
+            id: z.string({ message: 'Format Label tidak valid! '}).min(1, { message: 'Format Label tidak valid!' }),
+            nama: z.string({ message: 'Format nama tidak valid! '}).min(1, { message: 'Nama Label wajib diisi!' }),
         });
         const updateParse = updateSchema.safeParse({
             id: id,
@@ -253,7 +253,7 @@ export default function AdminLabelIndexPage({ pagination }: {
 
         axios.post<{
             message: string;
-        }>(route('label-kuis.update'), {
+        }>(route('label.update'), {
             id: id,
             nama: nama
         })
@@ -285,7 +285,7 @@ export default function AdminLabelIndexPage({ pagination }: {
         setDeleteForm((prevState) => ({ ...prevState, onSubmit: true }));
         const { id } = deleteForm;
         const deleteSchema = z.object({
-            id: z.string({ message: 'Format Label Kuis tidak valid! '}).min(1, { message: 'Format Label Kuis tidak valid!' }),
+            id: z.string({ message: 'Format Label tidak valid! '}).min(1, { message: 'Format Label tidak valid!' }),
         });
         const deleteParse = deleteSchema.safeParse({
             id: id,
@@ -303,7 +303,7 @@ export default function AdminLabelIndexPage({ pagination }: {
 
         axios.post<{
             message: string;
-        }>(route('label-kuis.delete'), {
+        }>(route('label.delete'), {
             id: id,
         })
             .then((res) => {
@@ -332,12 +332,12 @@ export default function AdminLabelIndexPage({ pagination }: {
 
     return (
         <AdminLayout>
-            <Head title="Admin - Manajemen Label Kuis" />
+            <Head title="Admin - Manajemen Label" />
             <CardTitle>
-                Manajemen Label Kuis
+                Manajemen Label
             </CardTitle>
             <CardDescription>
-                Data Label Kuis yang terdaftar
+                Data Label yang terdaftar
             </CardDescription>
             <div className="flex flex-col lg:flex-row gap-2 items-start justify-between">
                 { useIsMobile() ? (
@@ -350,16 +350,16 @@ export default function AdminLabelIndexPage({ pagination }: {
                         <DrawerContent onOpenAutoFocus={(e) => e.preventDefault()}>
                             <DrawerHeader className="text-left">
                                 <DrawerTitle>
-                                    Tambah Label Kuis
+                                    Tambah Label
                                 </DrawerTitle>
                                 <DrawerDescription>
-                                    Label kuis seperti "Sistem Operasi" dan "Modul 1"
+                                    Label seperti "Sistem Operasi" dan "Modul 1"
                                 </DrawerDescription>
                             </DrawerHeader>
                             <div className="p-5">
                                 <form className={ cn("grid items-start gap-4") } onSubmit={ handleCreateFormSubmit }>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="nama">Nama Label Kuis</Label>
+                                        <Label htmlFor="nama">Nama Label</Label>
                                         <Input
                                             type="text"
                                             id="nama"
@@ -402,15 +402,15 @@ export default function AdminLabelIndexPage({ pagination }: {
                         <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={ (e) => e.preventDefault() }>
                             <DialogHeader>
                                 <DialogTitle>
-                                    Tambah Label Kuis
+                                    Tambah Label
                                 </DialogTitle>
                                 <DialogDescription>
-                                    Label kuis seperti <strong>Sistem Operasi</strong> dan <strong>Modul 1</strong>
+                                    Label seperti <strong>Sistem Operasi</strong> dan <strong>Modul 1</strong>
                                 </DialogDescription>
                             </DialogHeader>
                             <form className={ cn("grid items-start gap-4") } onSubmit={ handleCreateFormSubmit }>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="nama">Nama Label Kuis</Label>
+                                    <Label htmlFor="nama">Nama Label</Label>
                                     <Input
                                         type="text"
                                         name="nama"
@@ -515,16 +515,16 @@ export default function AdminLabelIndexPage({ pagination }: {
                     <DrawerContent onOpenAutoFocus={(e) => e.preventDefault()}>
                         <DrawerHeader className="text-left">
                             <DrawerTitle>
-                                Update Label Kuis
+                                Update Label
                             </DrawerTitle>
                             <DrawerDescription>
-                                Anda akan mengubah nama Label Kuis
+                                Anda akan mengubah nama Label
                             </DrawerDescription>
                         </DrawerHeader>
                         <div className="p-5">
                             <form className={ cn("grid items-start gap-4") } onSubmit={ handleUpdateFormSubmit }>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="nama">Nama Label Kuis</Label>
+                                    <Label htmlFor="nama">Nama Label</Label>
                                     <Input
                                         type="text"
                                         id="nama"
@@ -562,15 +562,15 @@ export default function AdminLabelIndexPage({ pagination }: {
                     <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={ (e) => e.preventDefault() }>
                         <DialogHeader>
                             <DialogTitle>
-                                Update Label Kuis
+                                Update Label
                             </DialogTitle>
                             <DialogDescription>
-                                Anda akan mengubah nama Label Kuis
+                                Anda akan mengubah nama Label
                             </DialogDescription>
                         </DialogHeader>
                         <form className={ cn("grid items-start gap-4") } onSubmit={ handleUpdateFormSubmit }>
                             <div className="grid gap-2">
-                                <Label htmlFor="nama">Nama Label Kuis</Label>
+                                <Label htmlFor="nama">Nama Label</Label>
                                 <Input
                                     type="text"
                                     name="nama"
@@ -603,11 +603,11 @@ export default function AdminLabelIndexPage({ pagination }: {
                     <DrawerContent onOpenAutoFocus={(e) => e.preventDefault()}>
                         <DrawerHeader className="text-left">
                             <DrawerTitle>
-                                Hapus Label Kuis
+                                Hapus Label
                             </DrawerTitle>
                             <DrawerDescription>
                                 <p className="text-red-600 font-bold">
-                                    Anda akan menghapus Label Kuis!
+                                    Anda akan menghapus Label!
                                 </p>
                                 <p className="*:text-red-600">
                                     Semua data praktikum yang termasuk periode <strong>{ deleteForm.nama }</strong> akan
@@ -664,11 +664,11 @@ export default function AdminLabelIndexPage({ pagination }: {
                     <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={ (e) => e.preventDefault() }>
                         <DialogHeader>
                             <DialogTitle>
-                                Hapus Label Kuis
+                                Hapus Label
                             </DialogTitle>
                             <DialogDescription className="flex flex-col gap-0.5">
                                 <p className="text-red-600 font-bold">
-                                    Anda akan menghapus Label Kuis!
+                                    Anda akan menghapus Label!
                                 </p>
                                 <p className="*:text-red-600">
                                     Semua data praktikum yang termasuk periode <strong>{ deleteForm.nama }</strong> akan
