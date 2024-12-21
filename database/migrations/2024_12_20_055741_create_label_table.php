@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('label', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('nama');
+            $table->string('nama')->unique();
             $table->timestamps();
         });
     }

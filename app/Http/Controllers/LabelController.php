@@ -32,7 +32,7 @@ class LabelController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nama' => 'required|string|unique:label_kuis,nama',
+            'nama' => 'required|string|unique:label,nama',
         ]);
 
         try {
