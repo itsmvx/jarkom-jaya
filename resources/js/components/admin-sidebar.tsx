@@ -132,6 +132,13 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                 <SidebarGroup>
                     <SidebarMenu>
                         <SidebarMenuItem>
+                            <SidebarMenuButton asChild>
+                                <Link href="/">
+                                    Halaman Utama
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        <SidebarMenuItem>
                             <SidebarMenuButton asChild isActive={ route().current() === 'admin.dashboard' }>
                                 <Link href={route('admin.dashboard')}>
                                     Dashboard
