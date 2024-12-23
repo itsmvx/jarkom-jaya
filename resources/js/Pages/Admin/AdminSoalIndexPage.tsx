@@ -25,7 +25,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Plus, Loader2 } from "lucide-react"
+import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Plus, Loader2, Upload } from "lucide-react"
 import { FormEvent, useState } from "react";
 import { ViewPerPage } from "@/components/view-per-page";
 import { TableSearchForm } from "@/components/table-search-form";
@@ -99,7 +99,7 @@ export default function AdminSoalIndexPage({ pagination }: {
             cell: ({ row }) => {
                 const labelArr = row.original.label;
                 return (
-                    <div className="pl-3 flex flex-wrap gap-2 w-40 overflow-hidden">
+                    <div className="pl-3 flex flex-wrap gap-2 min-w-40 max-w-60 w-auto overflow-hidden">
                         { labelArr && labelArr.length > 0 ? (
                             labelArr.map((label) => (
                                 <Badge key={ label.id } className="py-1 px-2 text-xs">
@@ -112,22 +112,6 @@ export default function AdminSoalIndexPage({ pagination }: {
                     </div>
                 );
             },
-        },
-        {
-            accessorKey: "kode",
-            header: ({ column }) => {
-                return (
-                    <Button
-                        variant="ghost"
-                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                        className="w-full justify-start items-start"
-                    >
-                        Kode Soal
-                        <ArrowUpDown />
-                    </Button>
-                )
-            },
-            cell: ({ row }) => <p className="lowercase min-w-28 w-min indent-4 text-ellipsis line-clamp-1">{row.getValue("kode")}</p>,
         },
         {
             accessorKey: "pertanyaan",
@@ -261,9 +245,14 @@ export default function AdminSoalIndexPage({ pagination }: {
                 Data Soal Kuis
             </CardDescription>
             <div className="flex flex-col lg:flex-row gap-2 items-start justify-between">
-                <Button className="mt-4" onClick={ () => router.visit(route('admin.kuis.soal.create')) }>
-                    Buat <Plus />
-                </Button>
+                <div className="space-x-2">
+                    <Button className="mt-4" onClick={ () => router.visit(route('admin.kuis.soal.create')) }>
+                        Buat <Plus />
+                    </Button>
+                    <Button className="mt-4" onClick={ () => router.visit(route('admin.kuis.soal.create-upload')) }>
+                        Upload <Upload />
+                    </Button>
+                </div>
                 <TableSearchForm table={ table }/>
             </div>
             <div className="mx-auto sm:mx-0 rounded-md border overflow-x-auto w-[82vw] sm:w-full">

@@ -65,6 +65,45 @@ class SoalController extends Controller
             ], 500);
         }
     }
+    public function storeMass(Request $request)
+    {
+        $validated = $request->validate([
+            'data' => 'required|array',
+            'data.*.label' => 'nullable|array',
+            'data.*.label.*' => 'nullable|string|uuid|exists:label,id',
+            'data.*.pertanyaan' => 'required|string',
+            'data.*.pilihan_jawaban' => 'required|string',
+            'data.*.kunci_jawaban' => 'required|string',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($validated['data'] as $soalData) {
+                $soal = Soal::create([
+                    'id' => Str::uuid(),
+                    'pertanyaan' => $soalData['pertanyaan'],
+                    'pilihan_jawaban' => $soalData['pilihan_jawaban'],
+                    'kunci_jawaban' => $soalData['kunci_jawaban'],
+                ]);
+
+                $soal->label()->sync($soalData['label']);
+            }
+
+            DB::commit();
+
+            return Response::json([
+                'message' => 'Semua soal berhasil ditambahkan!'
+            ]);
+        } catch (QueryException $e) {
+            DB::rollBack();
+            $message = config('app.debug') ? $e->getMessage() : 'Server gagal memproses permintaan';
+            return Response::json([
+                'message' => $message
+            ], 500);
+        }
+    }
+
 
     /**
      * Display the specified resource.

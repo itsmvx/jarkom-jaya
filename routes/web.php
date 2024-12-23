@@ -57,6 +57,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::prefix('soal')->name('soal.')->group(function () {
             Route::get('/', [AdminPagesController::class, 'soalIndexPage'])->name('index');
             Route::get('/create', [AdminPagesController::class, 'soalCreatePage'])->name('create');
+            Route::get('/create-upload', [AdminPagesController::class, 'soalCreateUploadPage'])->name('create-upload');
         });
     });
 });
@@ -98,6 +99,7 @@ Route::prefix('label')->name('label.')->group(function () {
 });
 Route::prefix('soal')->name('soal.')->group(function () {
     Route::post('/create', [SoalController::class, 'store'])->name('create');
+    Route::post('/create-mass', [SoalController::class, 'storeMass'])->name('create-mass');
     Route::post('/update', [SoalController::class, 'update'])->name('update');
     Route::post('/delete', [SoalController::class, 'destroy'])->name('delete');
 });

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('nama');
             $table->string('npm')->unique();
-            $table->string('no_hp');
+            $table->string('no_hp')->nullable();
             $table->string('username')->unique();
             $table->string('password');
             $table->string('avatar')->nullable();

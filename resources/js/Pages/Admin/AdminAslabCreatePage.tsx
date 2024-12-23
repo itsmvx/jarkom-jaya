@@ -37,7 +37,7 @@ export default function AdminAslabCreatePage() {
     const handleCreateFormSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setCreateForm((prevState) => ({ ...prevState, onSubmit: true }));
-        const { nama, npm, username, password } = createForm;
+        const { nama, npm, noHp, username, password } = createForm;
         const createSchema = z.object({
             nama: z.string({ message: 'Format nama Aslab tidak valid! '}).min(1, { message: 'Nama Aslab wajib diisi!' }),
             npm: z.string({ message: 'Format NPM Aslab tidak valid! '}).min(1, { message: 'NPM Aslab wajib diisi!' }),
@@ -66,6 +66,7 @@ export default function AdminAslabCreatePage() {
         }>(route('aslab.create'), {
             nama: nama,
             npm: npm,
+            no_hp: noHp,
             username: username,
             password: password
         })
@@ -247,8 +248,7 @@ export default function AdminAslabCreatePage() {
                             }
                         />
                     </div>
-                    <Button type="submit"
-                            disabled={ createForm.onSubmit || !createForm.nama || !createForm.npm || !createForm.username || !createForm.password }>
+                    <Button type="submit" disabled={ createForm.onSubmit || !createForm.nama || !createForm.npm || !createForm.username || !createForm.password }>
                         { createForm.onSubmit
                             ? (
                                 <>Memproses <Loader2 className="animate-spin"/></>

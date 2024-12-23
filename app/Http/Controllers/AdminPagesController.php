@@ -279,4 +279,10 @@ class AdminPagesController extends Controller
             'labels' => fn() => Label::select('id', 'nama')->orderBy('created_at', 'desc')->get(),
         ]);
     }
+    public function soalCreateUploadPage()
+    {
+        return Inertia::render('Admin/AdminSoalCreateUploadPage', [
+            'labels' => fn() => Label::select('id', 'nama')->orderBy('created_at', 'desc')->get(),
+        ]);
+    }
 }

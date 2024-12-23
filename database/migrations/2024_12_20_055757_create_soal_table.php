@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('soal', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('pertanyaan');
-            $table->string('pilihan_jawaban');
+            $table->text('pertanyaan');
+            $table->text('pilihan_jawaban');
             $table->string('kunci_jawaban');
             $table->timestamps();
         });

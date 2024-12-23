@@ -8,20 +8,28 @@ type AnswerOption = {
     value: string;
     label: string;
 };
-export const AnswersEditor = ({ initialOptions = [], onSelectCorrectAnswer, onOptionsChange, }: {
+export const AnswersEditor = ({ initialOptions = [], initialCorrectAnswer = "", onSelectCorrectAnswer, onOptionsChange, }: {
     initialOptions?: AnswerOption[];
+    initialCorrectAnswer?: string;
     onSelectCorrectAnswer: (value: string) => void;
     onOptionsChange: (options: AnswerOption[]) => void;
 }) => {
     const [options, setOptions] = useState<AnswerOption[]>(initialOptions);
-    const [correctAnswer, setCorrectAnswer] = useState<string>("");
+    const [correctAnswer, setCorrectAnswer] = useState<string>(initialCorrectAnswer);
 
     useEffect(() => {
         onOptionsChange(options);
     }, [options]);
 
+    useEffect(() => {
+        if (initialCorrectAnswer) {
+            setCorrectAnswer(initialCorrectAnswer);
+            onSelectCorrectAnswer(initialCorrectAnswer);
+        }
+    }, [initialCorrectAnswer, onSelectCorrectAnswer]);
+
     const handleAddOption = () => {
-        if (options.length >= 4) return;
+        if (options.length >= 5) return;
         const nextValue = String.fromCharCode(65 + options.length);
         setOptions((prev) => [...prev, { value: nextValue, label: "" }]);
     };
@@ -35,8 +43,8 @@ export const AnswersEditor = ({ initialOptions = [], onSelectCorrectAnswer, onOp
     };
 
     const handleDeleteOption = (index: number) => {
-        setCorrectAnswer('');
-        onSelectCorrectAnswer('');
+        setCorrectAnswer("");
+        onSelectCorrectAnswer("");
         setOptions((prev) => {
             const updatedOptions = prev.filter((_, i) => i !== index);
             return updatedOptions.map((option, i) => ({
@@ -73,6 +81,7 @@ export const AnswersEditor = ({ initialOptions = [], onSelectCorrectAnswer, onOp
                                     onChange={(e) =>
                                         handleUpdateOption(index, e.target.value)
                                     }
+                                    className="min-h-24"
                                 />
                             </div>
                             <div className="ml-auto md:ml-0 flex items-center gap-2">
@@ -117,13 +126,13 @@ export const AnswersEditor = ({ initialOptions = [], onSelectCorrectAnswer, onOp
                     type="button"
                     className="mt-5 w-full md:w-auto"
                     onClick={handleAddOption}
-                    disabled={options.length >= 4}
+                    disabled={options.length >= 5}
                 >
-                    <Plus /> Pilihan Jawaban
+                    <Plus /> Tambah Pilihan Jawaban
                 </Button>
-                {options.length === 4 && (
+                {options.length === 5 && (
                     <p className="mt-2 text-sm text-muted-foreground">
-                        Maksimal 4 pilihan jawaban.
+                        Maksimal 5 pilihan jawaban.
                     </p>
                 )}
                 <p className="mt-4 text-sm">
