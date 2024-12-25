@@ -9,6 +9,7 @@ use App\Http\Controllers\PraktikanController;
 use App\Http\Controllers\PraktikumController;
 use App\Http\Controllers\SoalController;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -20,6 +21,24 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+
+Route::get('/assets/{filename}', function ($filename) {
+    $allowedExtensions = ['xlsx', 'xls'];
+    $extension = pathinfo($filename, PATHINFO_EXTENSION);
+
+    if (!in_array($extension, $allowedExtensions)) {
+        abort(403, 'Mangsut amat');
+    }
+
+    $path = public_path('assets/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404, 'File tidak ditemukan');
+    }
+
+    return Response::download($path);
+})->name('assets');
+
 Route::get('/test', function () {
     return Inertia::render('Test');
 });

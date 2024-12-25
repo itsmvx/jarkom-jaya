@@ -8,7 +8,7 @@ import { AnswersEditor } from "@/components/answers-editor";
 import * as XLSX from "xlsx";
 import { Delta } from "quill";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, TriangleAlert } from "lucide-react";
+import { Download, Loader2, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { z } from "zod";
 import axios, { AxiosError } from "axios";
@@ -29,7 +29,7 @@ type AnswerOption = {
 };
 
 type FileContent = {
-    label: string[]; // NANTI HANYA UNTUK STORE UUID Label yang dipilih saja
+    label: string[];
     pertanyaan: Delta;
     pilihan_jawaban: AnswerOption[];
     kunci_jawaban: string;
@@ -244,7 +244,7 @@ export default function AdminSoalCreateUploadPage({ labels }: {
 
                             if (rowErrors.length > 0) {
                                 errors.push({
-                                    [rowIndex + 1]: rowErrors, // Baris dimulai dari 2 (header di baris 1)
+                                    [rowIndex + 1]: rowErrors,
                                 });
                             }
 
@@ -382,10 +382,18 @@ export default function AdminSoalCreateUploadPage({ labels }: {
                     )) }
                 </div>
             ) : (
-                <ExcelUploader
-                    className="mt-4"
-                    onFileUpload={ (file) => handleSetFileUpload(file) }
-                />
+                <>
+                    <ExcelUploader
+                        className="mt-4"
+                        onFileUpload={ (file) => handleSetFileUpload(file) }
+                    />
+                    <div className="w-full mx-auto flex gap-1 items-center justify-center text-center text-sm font-medium">
+                        Tidak memiliki file?
+                        <a href={route('assets', 'template-upload-soal.xlsx')} className="hover:text-blue-600 flex items-center gap-0.5" target="_blank">
+                            Unduh template<Download width={18} />
+                        </a>
+                    </div>
+                </>
             ) }
             <div className="my-3 flex items-center justify-end">
                 <Button
