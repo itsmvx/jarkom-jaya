@@ -16,5 +16,4 @@ class Label extends Model
     {
         return $this->belongsToMany(Soal::class, 'label_soal', 'label_id', 'soal_id');
     }
-
 }

@@ -8,10 +8,13 @@ import { AnswersEditor } from "@/components/answers-editor";
 import * as XLSX from "xlsx";
 import { Delta } from "quill";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { z } from "zod";
 import axios, { AxiosError } from "axios";
+import { Label } from "@/components/ui/label";
+import Select from "react-select";
+import { NotificationCard } from "@/components/notification-card";
 
 type FileUpload = {
     file: File | null;
@@ -26,32 +29,24 @@ type AnswerOption = {
 };
 
 type FileContent = {
-    id_modul: string | null;
-    label: string[];
+    label: string[]; // NANTI HANYA UNTUK STORE UUID Label yang dipilih saja
     pertanyaan: Delta;
     pilihan_jawaban: AnswerOption[];
     kunci_jawaban: string;
 };
-
-export default function AdminSoalCreateUploadPage({ moduls }: {
+type FileError = {
+    [key: number]: string[];
+};
+export default function AdminSoalCreateUploadPage({ labels }: {
+    labels: {
+        id: string;
+        nama: string;
+    }[];
     moduls: {
-        id: string; // UUID
+        id: string;
         nama: string;
     }[];
 }) {
-    const mockModuls: {
-        id: string;
-        nama: string;
-    }[] = [
-        { id: "1e9c1c1d-4c2f-4a2d-9dcb-1e8e946a97b1", nama: "Modul 1" },
-        { id: "2d8a2b2e-5d3f-5b3d-0ead-2d9f957b08c2", nama: "Modul 2" },
-        { id: "3f7d3c3f-6e4f-6c4e-1fad-3e0a968c19d3", nama: "Modul 3" },
-        { id: "4g6e4d4g-7f5f-7d5f-2gae-4f1b979d2ae4", nama: "Modul 4" },
-        { id: "5h5f5e5h-8g6g-8e6g-3hbf-5g2c980e3bf5", nama: "Modul 5" },
-        { id: "6i4g6f6i-9h7h-9f7h-4icg-6h3d991f4cg6", nama: "Modul 6" },
-        { id: "7j3h7g7j-0i8i-0g8i-5jdh-7i4e102g5dh7", nama: "Modul 7" },
-        { id: "8k2i8h8k-1j9j-1h9j-6kei-8j5f213h6ei8", nama: "Modul 8" },
-    ];
     const { toast } = useToast();
 
     const fileUploadInit: FileUpload = {
@@ -69,6 +64,7 @@ export default function AdminSoalCreateUploadPage({ moduls }: {
     };
 
     const [fileUpload, setFileUpload] = useState<FileUpload>(fileUploadInit);
+    const [fileErrors, setFileErrors] = useState<FileError[]>([]);
     const [fileContents, setFileContents] = useState<FileContent[]>([]);
     const [form, setForm] = useState(formInit);
 
@@ -80,20 +76,22 @@ export default function AdminSoalCreateUploadPage({ moduls }: {
             invalidMsg: "",
         });
     };
-
     const mapDataFileToContents = (row: any[]): FileContent => ({
-        id_modul: mockModuls.find((modul) => modul.nama === row[0])?.id ?? null,
-        label: [],
-        pertanyaan: row[1] ? { ops: [{ insert: row[1] }] } as Delta : { ops: [{ insert: '' }] } as Delta,
+        label: row[7]
+            ? row[7]
+                .split(",")
+                .map((labelName: string) => labels.find((label) => label.nama === labelName.trim())?.id)
+                .filter(Boolean)
+            : [],
+        pertanyaan: row[0] ? { ops: [{ insert: row[0] }] } as Delta : { ops: [{ insert: '' }] } as Delta,
         pilihan_jawaban: ["A", "B", "C", "D", "E"].map((key, index) => ({
             value: key,
-            label: row[2 + index] ?? "",
+            label: row[1 + index] ?? "",
         })),
-        kunci_jawaban: row[7]?.toUpperCase() || "",
+        kunci_jawaban: row[6]?.toUpperCase() ?? "",
     });
 
     const soalSchema = z.object({
-        id_modul: z.string().uuid().nullable(),
         pertanyaan: z.object({
             ops: z.array(
                 z.object({
@@ -168,11 +166,10 @@ export default function AdminSoalCreateUploadPage({ moduls }: {
                     const arrayBuffer = await fileUpload.file.arrayBuffer();
                     const workbook = XLSX.read(arrayBuffer);
                     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const raw_data: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    const raw_data: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
                     if (raw_data.length > 0) {
-                        const ACCEPT_HEADERS = [
-                            "id_modul",
+                        const ACCEPT_HEADERS: string[] = [
                             "pertanyaan",
                             "a",
                             "b",
@@ -180,46 +177,107 @@ export default function AdminSoalCreateUploadPage({ moduls }: {
                             "d",
                             "e",
                             "kunci_jawaban",
+                            "label",
                         ];
 
-                        let invalidHeader = "";
-                        const isValidHeaders = raw_data[0]
-                            .map((header: string) => header?.toLowerCase().trim())
-                            .every((header: string, index: number) => {
-                                if (header === ACCEPT_HEADERS[index]) {
-                                    return true;
-                                }
-                                invalidHeader = header;
+                        let invalidHeaders: string[] = [];
+                        const receivedHeaders: string[] = raw_data[0].map((header) =>
+                            (header as string)?.toLowerCase().trim()
+                        );
+
+                        const isValidHeaders = ACCEPT_HEADERS.every((expectedHeader, index) => {
+                            const receivedHeader = receivedHeaders[index];
+                            if (receivedHeader !== expectedHeader) {
+                                invalidHeaders.push(
+                                    `Kolom ${receivedHeader ? `"${receivedHeader}"` : `ke-${index+1}`} tidak valid. Ekspetasi kolom "${expectedHeader}".`
+                                );
                                 return false;
-                            });
+                            }
+                            return true;
+                        });
 
                         if (!isValidHeaders) {
                             toast({
                                 variant: "destructive",
-                                title: "Permintaan gagal diproses!",
-                                description: `Header tidak valid: ${invalidHeader}`,
+                                title: "Header file tidak valid",
+                                description: invalidHeaders.join(" "),
                             });
                             return;
                         }
 
-                        const sanitizedData = raw_data.slice(1).filter((row) => row.length >= 8);
+                        const errors: FileError[] = [];
+                        const sanitizedData = raw_data.slice(1).filter((row: any[], rowIndex: number) => {
+                            const rowErrors: string[] = [];
+
+                            const pertanyaan = row[0] as string | undefined;
+                            if (!pertanyaan) {
+                                rowErrors.push(`Pertanyaan tidak diisi.`);
+                            }
+
+                            const choices: string[] = ["A", "B", "C", "D", "E"];
+                            const missingColumns: string[] = [];
+
+                            choices.forEach((choice, i) => {
+                                const answer = row[i + 1] as string | undefined;
+                                if (!answer) {
+                                    missingColumns.push(choice);
+                                }
+                            });
+
+                            if (missingColumns.length > 0) {
+                                rowErrors.push(
+                                    `Pilihan jawaban ${missingColumns.join(", ")} tidak diisi.`
+                                );
+                            }
+
+                            const kunci = row[6] as string | undefined;
+                            if (!kunci || !choices.includes(kunci.toUpperCase())) {
+                                rowErrors.push(
+                                    `Kunci jawaban ${kunci ? `"${kunci}" tidak valid (A,B,C,D,E)` : 'tidak diisi'}`
+                                );
+                            }
+
+                            const label = row[7] as string | undefined;
+                            if (label && typeof label !== "string") {
+                                rowErrors.push(`Label harus berupa teks.`);
+                            }
+
+                            if (rowErrors.length > 0) {
+                                errors.push({
+                                    [rowIndex + 1]: rowErrors, // Baris dimulai dari 2 (header di baris 1)
+                                });
+                            }
+
+                            return rowErrors.length === 0;
+                        });
+
+                        setFileErrors(errors);
+
                         if (sanitizedData.length === 0) {
                             toast({
                                 variant: "destructive",
                                 title: "Gagal memproses file",
-                                description: "File tidak memiliki data yang valid.",
+                                description: "File tidak memiliki data yang valid atau mungkin kosong.",
                             });
                             return;
                         }
 
-                        setFileContents(sanitizedData.map((data) => mapDataFileToContents(data)));
+                        setFileContents(
+                            sanitizedData.map((data) => mapDataFileToContents(data))
+                        );
+                    } else {
+                        toast({
+                            variant: "destructive",
+                            title: "Gagal membaca file",
+                            description: "File kosong atau tidak memiliki data.",
+                        });
                     }
                 } catch (error: unknown) {
                     const errMsg =
                         error instanceof Error ? error.message : "Gagal membaca dokumen.";
                     toast({
                         variant: "destructive",
-                        title: "Permintaan gagal diproses!",
+                        title: "Kesalahan saat membaca file",
                         description: errMsg,
                     });
                 } finally {
@@ -230,17 +288,34 @@ export default function AdminSoalCreateUploadPage({ moduls }: {
                 }
             }
         };
+
         handleFile();
     }, [fileUpload]);
-
-    console.log(fileContents)
 
     return (
         <AdminLayout>
             <Head title="Admin - Upload Soal Kuis" />
             <CardTitle>Upload Soal Kuis</CardTitle>
             <CardDescription>Upload data soal kuis (excel)</CardDescription>
-
+            {fileErrors.length > 0 && (
+                <NotificationCard className="max-w-full rounded-sm shadow-none bg-red-200 text-sm">
+                    <div className="flex gap-1 items-center mb-2">
+                        <TriangleAlert width={18} color="red" />
+                        <p className="text-base font-medium">Data yang tidak dibaca karena tidak valid</p>
+                    </div>
+                    <ul className="list-disc ml-6">
+                        {fileErrors.map((errorObj, idx) => {
+                            const baris = Object.keys(errorObj)[0];
+                            const messages = errorObj[baris as unknown as number];
+                            return (
+                                <li key={idx}>
+                                    Data ke-{baris} : {messages.join(", ")}
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </NotificationCard>
+            )}
             {fileUpload.onLoad ? (
                 <div className="flex items-center justify-center h-64">
                     <div className="text-center">
@@ -251,21 +326,40 @@ export default function AdminSoalCreateUploadPage({ moduls }: {
             ) : fileContents.length > 0 ? (
                 <div className="mt-6 space-y-6">
                     {fileContents.map((content, index) => (
-                        <CardContent key={index} className="p-4 border rounded-md">
+                        <CardContent key={ index } className="p-4 border rounded-md">
                             <div className="space-y-4">
-                                <h3 className="text-lg font-bold">Soal {index + 1}</h3>
+                                <h3 className="text-lg font-bold">Soal { index + 1 }</h3>
+                                <div className="grid gap-2">
+                                    <Label>Label Soal</Label>
+                                    <Select
+                                        isMulti
+                                        options={ labels.map((item) => ({
+                                            value: item.id,
+                                            label: item.nama,
+                                        })) }
+                                        onChange={ (selectedOptions) => {
+                                            const updated = [ ...fileContents ];
+                                            updated[index].label = selectedOptions.map((opt) => opt.value);
+                                            setFileContents(updated);
+                                        } }
+                                        value={ labels
+                                            .filter((item) => content.label.includes(item.id))
+                                            .map((item) => ({ value: item.id, label: item.nama })) }
+                                        placeholder="Pilih label Soal"
+                                    />
+                                </div>
                                 <QuillEditor
-                                    value={content.pertanyaan}
-                                    onValueChange={(value) => {
-                                        const updated = [...fileContents];
+                                    value={ content.pertanyaan }
+                                    onValueChange={ (value) => {
+                                        const updated = [ ...fileContents ];
                                         updated[index].pertanyaan = value;
                                         setFileContents(updated);
-                                    }}
+                                    } }
                                 />
                                 <AnswersEditor
-                                    initialOptions={content.pilihan_jawaban}
-                                    onOptionsChange={(options) => {
-                                        const updated = [...fileContents];
+                                    initialOptions={ content.pilihan_jawaban }
+                                    onOptionsChange={ (options) => {
+                                        const updated = [ ...fileContents ];
                                         if (
                                             JSON.stringify(updated[index].pilihan_jawaban) !==
                                             JSON.stringify(options)
@@ -273,40 +367,40 @@ export default function AdminSoalCreateUploadPage({ moduls }: {
                                             updated[index].pilihan_jawaban = options;
                                             setFileContents(updated);
                                         }
-                                    }}
-                                    initialCorrectAnswer={content.kunci_jawaban}
-                                    onSelectCorrectAnswer={(correct) => {
-                                        const updated = [...fileContents];
+                                    } }
+                                    initialCorrectAnswer={ content.kunci_jawaban }
+                                    onSelectCorrectAnswer={ (correct) => {
+                                        const updated = [ ...fileContents ];
                                         if (updated[index].kunci_jawaban !== correct) {
                                             updated[index].kunci_jawaban = correct;
                                             setFileContents(updated);
                                         }
-                                    }}
+                                    } }
                                 />
                             </div>
                         </CardContent>
-                    ))}
+                    )) }
                 </div>
             ) : (
                 <ExcelUploader
                     className="mt-4"
-                    onFileUpload={(file) => handleSetFileUpload(file)}
+                    onFileUpload={ (file) => handleSetFileUpload(file) }
                 />
-            )}
+            ) }
             <div className="my-3 flex items-center justify-end">
                 <Button
-                    onClick={handleFormSubmit}
-                    disabled={form.onSubmit || fileContents.length === 0}
-                    className={`${fileContents.length > 1 ? 'inline-flex' : 'hidden'}`}
+                    onClick={ handleFormSubmit }
+                    disabled={ form.onSubmit || fileContents.length === 0 }
+                    className={ `${ fileContents.length > 1 ? 'inline-flex' : 'hidden' }` }
                 >
-                    {form.onSubmit ? (
+                    { form.onSubmit ? (
                         <div className="flex items-center space-x-2">
-                            <Loader2 className="animate-spin h-4 w-4" />
+                            <Loader2 className="animate-spin h-4 w-4"/>
                             <span>Memproses...</span>
                         </div>
                     ) : (
                         "Simpan euy"
-                    )}
+                    ) }
                 </Button>
             </div>
         </AdminLayout>

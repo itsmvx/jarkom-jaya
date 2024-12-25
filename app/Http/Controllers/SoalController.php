@@ -73,7 +73,7 @@ class SoalController extends Controller
             'data.*.label.*' => 'nullable|string|uuid|exists:label,id',
             'data.*.pertanyaan' => 'required|string',
             'data.*.pilihan_jawaban' => 'required|string',
-            'data.*.kunci_jawaban' => 'required|string',
+            'data.*.kunci_jawaban' => 'required|string|in:A,B,C,D,E',
         ]);
 
         DB::beginTransaction();
@@ -87,22 +87,30 @@ class SoalController extends Controller
                     'kunci_jawaban' => $soalData['kunci_jawaban'],
                 ]);
 
-                $soal->label()->sync($soalData['label']);
+                if (!empty($soalData['label'])) {
+                    $soal->label()->sync($soalData['label']);
+                }
             }
 
             DB::commit();
 
             return Response::json([
-                'message' => 'Semua soal berhasil ditambahkan!'
-            ]);
+                'message' => 'Semua soal berhasil ditambahkan!',
+            ], 201);
         } catch (QueryException $e) {
             DB::rollBack();
             $message = config('app.debug') ? $e->getMessage() : 'Server gagal memproses permintaan';
             return Response::json([
-                'message' => $message
+                'message' => $message,
             ], 500);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return Response::json([
+                'message' => $e->getMessage(),
+            ], 400);
         }
     }
+
 
 
     /**
