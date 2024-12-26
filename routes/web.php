@@ -4,7 +4,9 @@ use App\Http\Controllers\AdminPagesController;
 use App\Http\Controllers\AslabController;
 use App\Http\Controllers\JenisPraktikumController;
 use App\Http\Controllers\LabelController;
+use App\Http\Controllers\ModulController;
 use App\Http\Controllers\PeriodePraktikumController;
+use App\Http\Controllers\PertemuanController;
 use App\Http\Controllers\PraktikanController;
 use App\Http\Controllers\PraktikumController;
 use App\Http\Controllers\SoalController;
@@ -100,6 +102,16 @@ Route::prefix('praktikum')->name('praktikum.')->group(function () {
     Route::post('/update', [PraktikumController::class, 'update'])->name('update');
     Route::post('/delete', [PraktikumController::class, 'destroy'])->name('delete');
     Route::post('/update-status', [PraktikumController::class, 'updateStatus'])->name('update-status');
+});
+Route::prefix('pertemuan')->name('pertemuan.')->group(function () {
+    Route::post('/create', [PertemuanController::class, 'store'])->name('create');
+    Route::post('/update', [PertemuanController::class, 'update'])->name('update');
+    Route::post('/delete', [PertemuanController::class, 'destroy'])->name('delete');
+});
+Route::prefix('modul')->name('modul.')->group(function () {
+    Route::post('/create', [ModulController::class, 'store'])->name('create');
+    Route::post('/update', [ModulController::class, 'update'])->name('update');
+    Route::post('/delete', [ModulController::class, 'destroy'])->name('delete');
 });
 Route::prefix('aslab')->name('aslab.')->group(function () {
     Route::post('/create', [AslabController::class, 'store'])->name('create');

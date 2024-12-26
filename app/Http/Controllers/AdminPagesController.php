@@ -118,10 +118,23 @@ class AdminPagesController extends Controller
         }
 
         try {
-            $praktikum = Praktikum::with(['jenis:id,nama', 'periode:id,nama'])->findOrFail($idParam);
+            $praktikum = Praktikum::with([
+                'jenis:id,nama',
+                'periode:id,nama',
+                'pertemuan:id,praktikum_id,nama',
+                'pertemuan.modul:id,pertemuan_id,nama,topik',
+            ])->findOrFail($idParam);
 
             return Inertia::render('Admin/AdminPraktikumUpdatePage', [
-                'praktikum' => fn() => $praktikum->only(['id', 'nama', 'tahun', 'status', 'jenis', 'periode']),
+                'praktikum' => fn() => $praktikum->only([
+                    'id',
+                    'nama',
+                    'tahun',
+                    'status',
+                    'jenis',
+                    'periode',
+                    'pertemuan',
+                ]),
                 'jenisPraktikums' => fn() => JenisPraktikum::select('id', 'nama')->orderBy('created_at', 'desc')->get(),
                 'periodePraktikums' => fn() => PeriodePraktikum::select('id', 'nama')->get(),
             ]);

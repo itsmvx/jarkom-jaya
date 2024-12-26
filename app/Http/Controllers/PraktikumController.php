@@ -7,6 +7,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class PraktikumController extends Controller
@@ -98,7 +99,11 @@ class PraktikumController extends Controller
     {
         $validated = $request->validate([
             'id' => 'required|exists:praktikum,id',
-            'nama' => 'required|string|unique:praktikum,nama',
+            'nama' => [
+                'required',
+                'string',
+                Rule::unique('praktikum', 'nama')->ignore($request->id),
+            ],
             'tahun' => 'required|integer|min:1977|max:2077',
             'status' => 'required|boolean',
             'jenis_praktikum_id' => 'required|exists:jenis_praktikum,id',
