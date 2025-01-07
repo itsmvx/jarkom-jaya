@@ -118,7 +118,7 @@ export default function AdminLabelIndexPage({ pagination }: {
                 );
             },
             cell: ({ row }) => (
-                <div className="capitalize indent-2 min-w-36 px-2">
+                <div className="indent-2 min-w-36 px-2">
                     {row.getValue("nama")}
                 </div>
             ),
