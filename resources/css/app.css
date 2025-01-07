@@ -83,3 +83,6 @@
         font-family: Poppins, system-ui, sans-serif;
     }
 }
+.my-card {
+    @apply rounded-sm shadow-sm border-2 border-muted-foreground/30
+}

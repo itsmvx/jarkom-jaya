@@ -47,18 +47,19 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { z } from "zod";
+import { format } from "date-fns";
+import { id as localeId } from "date-fns/locale";
 
-type Aslab = {
+type Kuis = {
     id: string;
-    nama: string;
-    npm: string;
-    username: string;
-    no_hp: string | null;
-    avatar: string | null;
-    jabatan: string;
+    kuis_nama: string;
+    pertemuan_nama: string;
+    praktikum_nama: string;
+    waktu_mulai: string;
+    waktu_selesai: string;
 };
-export default function AdminAslabIndexPage({ pagination }: {
-    pagination: PaginationData<Aslab[]>;
+export default function AdminKuisIndexPage({ pagination }: {
+    pagination: PaginationData<Kuis[]>;
 }) {
 
     const { toast } = useToast();
@@ -77,9 +78,9 @@ export default function AdminAslabIndexPage({ pagination }: {
     const [ openDeleteForm, setOpenDeleteForm ] = useState(false);
     const [ deleteForm, setDeleteForm ] = useState<DeleteForm>(deleteFormInit);
 
-    const columns: ColumnDef<Aslab>[] = [
+    const columns: ColumnDef<Kuis>[] = [
         {
-            accessorKey: "nama",
+            accessorKey: "kuis_nama",
             header: ({ column }) => {
                 return (
                     <Button
@@ -87,43 +88,46 @@ export default function AdminAslabIndexPage({ pagination }: {
                         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                         className="w-full justify-start "
                     >
-                        Nama
+                        Nama Kuis
                         <ArrowUpDown />
                     </Button>
                 )
             },
-            cell: ({ row }) => <div className="capitalize min-w-52 px-2">{row.getValue("nama")}</div>,
+            cell: ({ row }) => <div className="capitalize min-w-52 px-2">{row.getValue("kuis_nama")}</div>,
         },
         {
-            accessorKey: "npm",
-            header: ({ column }) => {
+            accessorKey: "praktikum_nama",
+            header: () => <div className="select-none">Praktikum</div>,
+            cell: ({ row }) => <div className="capitalize min-w-36">{row.getValue("praktikum_nama") ?? '-'}</div>,
+        },
+        {
+            accessorKey: "pertemuan_nama",
+            header: () => <div className="select-none">Pertemuan</div>,
+            cell: ({ row }) => <div className="capitalize min-w-28">{row.getValue("pertemuan_nama") ?? '-'}</div>,
+        },
+        {
+            accessorKey: "waktu_mulai",
+            header: () => <div className="select-none">Waktu Mulai</div>,
+            cell: ({ row }) => {
+                const waktuMulai = format(new Date(row.original.waktu_mulai), "PPP hh:mm", { locale: localeId });
                 return (
-                    <Button
-                        variant="ghost"
-                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                        className="w-full justify-start items-start"
-                    >
-                        NPM
-                        <ArrowUpDown />
-                    </Button>
-                )
-            },
-            cell: ({ row }) => <div className="lowercase min-w-20">{row.getValue("npm")}</div>,
+                    <div className="capitalize min-w-36">
+                        { waktuMulai }
+                    </div>
+                );
+            }
         },
         {
-            accessorKey: "jabatan",
-            header: () => <div className="select-none">Jabatan</div>,
-            cell: ({ row }) => <div className="lowercase min-w-20">{row.getValue("jabatan")}</div>,
-        },
-        {
-            accessorKey: "username",
-            header: () => <div className="select-none">Username</div>,
-            cell: ({ row }) => <div className={ `lowercase min-w-24 ${row.getValue('username') ? 'indent-0' : 'indent-4'}` }>{row.getValue("username") ?? '-'}</div>,
-        },
-        {
-            accessorKey: "no_hp",
-            header: () => <div className="select-none">No.HP/Wangsaff</div>,
-            cell: ({ row }) => <div className={ `lowercase min-w-24 ${row.getValue('no_hp') ? 'indent-0' : 'indent-4'}` }>{row.getValue("no_hp") ?? '-'}</div>,
+            accessorKey: "waktu_selesai",
+            header: () => <div className="select-none">Waktu Selesai</div>,
+            cell: ({ row }) => {
+                const waktuSelesai = format(new Date(row.original.waktu_selesai), "PPP hh:mm", { locale: localeId });
+                return (
+                    <div className="capitalize min-w-36">
+                        { waktuSelesai }
+                    </div>
+                );
+            }
         },
         {
             id: "actions",
@@ -148,7 +152,7 @@ export default function AdminAslabIndexPage({ pagination }: {
                                 setDeleteForm((prevState) => ({
                                     ...prevState,
                                     id: originalRow.id,
-                                    nama: originalRow.nama
+                                    nama: originalRow.kuis_nama
                                 }));
                             } }>
                                 <Trash2 /> Hapus data
@@ -181,7 +185,7 @@ export default function AdminAslabIndexPage({ pagination }: {
         setDeleteForm((prevState) => ({ ...prevState, onSubmit: true }));
         const { id } = deleteForm;
         const deleteSchema = z.object({
-            id: z.string({ message: 'Format Aslab tidak valid! '}).min(1, { message: 'Format Aslab tidak valid!' }),
+            id: z.string({ message: 'Format Kuis tidak valid! '}).min(1, { message: 'Format Kuis tidak valid!' }),
         });
         const deleteParse = deleteSchema.safeParse({
             id: id,
@@ -199,7 +203,7 @@ export default function AdminAslabIndexPage({ pagination }: {
 
         axios.post<{
             message: string;
-        }>(route('aslab.delete'), {
+        }>(route('kuis.delete'), {
             id: id,
         })
             .then((res) => {
@@ -226,17 +230,19 @@ export default function AdminAslabIndexPage({ pagination }: {
             });
     };
 
+    console.log(pagination.data);
+
     return (
         <AdminLayout>
-            <Head title="Admin - Manajemen Aslab" />
+            <Head title="Admin - Manajemen Kuis" />
             <CardTitle>
-                Manajemen Aslab
+                Manajemen Kuis
             </CardTitle>
             <CardDescription>
-                Data Aslab
+                Data Kuis
             </CardDescription>
             <div className="flex flex-col lg:flex-row gap-2 items-start justify-between">
-                <Button className="mt-4" onClick={ () => router.visit(route('admin.aslab.create')) }>
+                <Button className="mt-4" onClick={ () => router.visit(route('admin.kuis.create')) }>
                     Buat <Plus />
                 </Button>
                 <TableSearchForm table={ table }/>
@@ -319,14 +325,14 @@ export default function AdminAslabIndexPage({ pagination }: {
                     <DrawerContent onOpenAutoFocus={ (e) => e.preventDefault() }>
                         <DrawerHeader className="text-left">
                             <DrawerTitle>
-                                Hapus Aslab
+                                Hapus Kuis
                             </DrawerTitle>
                             <DrawerDescription>
                                 <span className="text-red-600 font-bold">
-                                    Anda akan menghapus Aslab!
+                                    Anda akan menghapus Kuis!
                                 </span>
                                 <span className="*:text-red-600">
-                                    Semua data Aslab <strong>{ deleteForm.nama }</strong> seperti nilai kuis dan sebagainya akan juga terhapus
+                                    Semua data Kuis <strong>{ deleteForm.nama }</strong> seperti nilai kuis dan sebagainya akan juga terhapus
                                 </span>
                                 <br/>
                                 <span className="text-red-600">
@@ -380,14 +386,14 @@ export default function AdminAslabIndexPage({ pagination }: {
                     <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={ (e) => e.preventDefault() }>
                         <DialogHeader>
                             <DialogTitle>
-                                Hapus Aslab
+                                Hapus Kuis
                             </DialogTitle>
                             <DialogDescription className="flex flex-col gap-0.5">
                                 <span className="text-red-600 font-bold">
-                                    Anda akan menghapus Aslab!
+                                    Anda akan menghapus Kuis!
                                 </span>
                                 <span className="*:text-red-600">
-                                    Semua data Aslab <strong>{ deleteForm.nama }</strong> seperti nilai kuis dan sebagainya akan juga terhapus
+                                    Semua data Kuis <strong>{ deleteForm.nama }</strong> seperti nilai kuis dan sebagainya akan juga terhapus
                                 </span>
                                 <br/>
                                 <span className="text-red-600">

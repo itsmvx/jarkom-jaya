@@ -7,6 +7,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class PertemuanController extends Controller
 {
@@ -32,8 +33,15 @@ class PertemuanController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nama' => 'required|string',
+            'nama' => [
+                'required',
+                'string',
+                Rule::unique('pertemuan', 'nama')
+                    ->where('praktikum_id', $request->praktikum_id ?? ''),
+            ],
             'praktikum_id' => 'required|exists:praktikum,id',
+        ],[
+            'nama.unique' => 'Nama Pertemuan sudah ada.',
         ]);
 
         try {
@@ -42,6 +50,7 @@ class PertemuanController extends Controller
                 'nama' => $validated['nama'],
                 'praktikum_id' => $validated['praktikum_id'],
             ]);
+
             return Response::json([
                 'message' => 'Pertemuan Praktikum berhasil ditambahkan!'
             ]);
@@ -53,6 +62,7 @@ class PertemuanController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Display the specified resource.
@@ -73,11 +83,20 @@ class PertemuanController extends Controller
     /**
      * Update the specified resource in storage.
      */
+
     public function update(Request $request)
     {
         $validated = $request->validate([
             'id' => 'required|exists:pertemuan,id',
-            'nama' => 'required|string',
+            'nama' => [
+                'required',
+                'string',
+                Rule::unique('pertemuan', 'nama')
+                    ->where('praktikum_id', $request->praktikum_id ?? '')
+                    ->ignore($request->id),
+            ],
+        ], [
+            'nama.unique' => 'Nama Pertemuan sudah ada.',
         ]);
 
         try {
@@ -85,6 +104,7 @@ class PertemuanController extends Controller
             $pertemuan->update([
                 'nama' => $validated['nama']
             ]);
+
             return Response::json([
                 'message' => 'Pertemuan Praktikum berhasil diperbarui!'
             ]);
@@ -96,6 +116,7 @@ class PertemuanController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Remove the specified resource from storage.

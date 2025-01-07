@@ -91,8 +91,8 @@ const data: {
                 },
                 {
                     title: "Manajemen Kuis",
-                    url: "#",
-                    route: ''
+                    url: route('admin.kuis.index'),
+                    route: 'admin.kuis.index'
                 },
 
             ],

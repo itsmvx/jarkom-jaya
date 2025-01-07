@@ -23,4 +23,8 @@ class Pertemuan extends Model
     {
         return $this->hasMany(Modul::class, 'pertemuan_id');
     }
+    public function kuis()
+    {
+        return $this->hasMany(Kuis::class, 'pertemuan_id');
+    }
 }

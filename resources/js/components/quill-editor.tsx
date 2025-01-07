@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { CSSProperties, useEffect, useRef, useState } from "react";
 import Quill, { Delta } from "quill";
 import "quill/dist/quill.snow.css";
 
-export const QuillEditor = ({ value, onValueChange, }: {
+export const QuillEditor = ({ value, onValueChange, height = '100px' }: {
     value?: Delta;
     onValueChange: (value: Delta) => void;
+    height?: CSSProperties['height'];
 }) => {
     const quillRef = useRef<HTMLDivElement>(null);
     const [quillInstance, setQuillInstance] = useState<Quill | null>(null);
@@ -45,7 +46,7 @@ export const QuillEditor = ({ value, onValueChange, }: {
     return (
         <div>
             <div id="toolbar"></div>
-            <div ref={ quillRef } style={ { height: "100px" } }></div>
+            <div ref={ quillRef } style={ { height: height } }></div>
         </div>
     );
 };

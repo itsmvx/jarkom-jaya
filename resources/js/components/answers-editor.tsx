@@ -22,11 +22,11 @@ export const AnswersEditor = ({ initialOptions = [], initialCorrectAnswer = "", 
     }, [options]);
 
     useEffect(() => {
-        if (initialCorrectAnswer) {
+        if (initialCorrectAnswer && initialCorrectAnswer !== correctAnswer) {
             setCorrectAnswer(initialCorrectAnswer);
             onSelectCorrectAnswer(initialCorrectAnswer);
         }
-    }, [initialCorrectAnswer, onSelectCorrectAnswer]);
+    }, [initialCorrectAnswer, correctAnswer, onSelectCorrectAnswer]);
 
     const handleAddOption = () => {
         if (options.length >= 5) return;

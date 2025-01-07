@@ -6,11 +6,12 @@ import { CardDescription, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowBigLeft, Eye, EyeOff, Loader2, Shuffle } from "lucide-react";
+import { ArrowBigLeft, Check, Eye, EyeOff, Loader2, Shuffle, X } from "lucide-react";
 import { z } from "zod";
 import axios, { AxiosError } from "axios";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { IconSwitch } from "@/components/icon-switch";
 
 export default function AdminAslabCreatePage() {
     const { toast } = useToast();
@@ -20,6 +21,8 @@ export default function AdminAslabCreatePage() {
         username: string;
         password: string;
         noHp: string;
+        aktif: boolean;
+        jabatan: string;
         showPassword: boolean;
         onSubmit: boolean;
     };
@@ -29,6 +32,8 @@ export default function AdminAslabCreatePage() {
         username: '',
         password: '',
         noHp: '',
+        aktif: true,
+        jabatan: '',
         showPassword: false,
         onSubmit: false
     };
@@ -37,18 +42,20 @@ export default function AdminAslabCreatePage() {
     const handleCreateFormSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setCreateForm((prevState) => ({ ...prevState, onSubmit: true }));
-        const { nama, npm, noHp, username, password } = createForm;
+        const { nama, npm, noHp, username, password, aktif, jabatan } = createForm;
         const createSchema = z.object({
             nama: z.string({ message: 'Format nama Aslab tidak valid! '}).min(1, { message: 'Nama Aslab wajib diisi!' }),
             npm: z.string({ message: 'Format NPM Aslab tidak valid! '}).min(1, { message: 'NPM Aslab wajib diisi!' }),
             username: z.string({ message: 'Format Username Aslab tidak valid! '}).min(1, { message: 'Username Aslab wajib diisi!' }),
             password: z.string({ message: 'Format Password Aslab tidak valid! '}).min(1, { message: 'Password Aslab wajib diisi!' }),
+            jabatan: z.string({ message: 'Format Jabatan Aslab tidak valid! '}).min(1, { message: 'Jabatan Aslab wajib diisi!' }),
         });
         const createParse = createSchema.safeParse({
             nama: nama,
             npm: npm,
             username: username,
-            password: password
+            password: password,
+            jabatan: jabatan,
         });
         if (!createParse.success) {
             const errMsg = createParse.error.issues[0]?.message;
@@ -67,6 +74,8 @@ export default function AdminAslabCreatePage() {
             nama: nama,
             npm: npm,
             no_hp: noHp,
+            aktif: aktif,
+            jabatan: jabatan,
             username: username,
             password: password
         })
@@ -232,23 +241,63 @@ export default function AdminAslabCreatePage() {
                             </div>
                         </div>
                     </div>
+                    <div className="flex flex-col md:flex-row md:flex-wrap gap-3 md:items-center *:grow">
+                        <div className="grid gap-2 min-w-80">
+                            <Label htmlFor="npm">No.HP atau Wangsaff Aslab (tidak wajib)</Label>
+                            <Input
+                                type="text"
+                                name="no_hp"
+                                id="no_hp"
+                                placeholder="08xxxxxxxxxx"
+                                value={ createForm.noHp }
+                                onChange={ (event) =>
+                                    setCreateForm((prevState) => ({
+                                        ...prevState,
+                                        noHp: event.target.value.replace(/[^0-9]/g, ""),
+                                    }))
+                                }
+                            />
+                        </div>
+                        <div className="min-w-80 flex-1 grid gap-2">
+                            <Label htmlFor="status-switch">
+                                Status Aslab
+                            </Label>
+                            <div className="basis-1/2 flex flex-row gap-1.5 items-center">
+                                <IconSwitch
+                                    id="status-switch"
+                                    checkedIcon={ <Check className="w-4 h-4 text-green-500"/> }
+                                    uncheckedIcon={ <X className="w-4 h-4 text-red-600"/> }
+                                    checked={ createForm.aktif }
+                                    onCheckedChange={ (event) => setCreateForm((prevState) => ({
+                                        ...prevState,
+                                        aktif: event
+                                    })) }
+                                    aria-label="Status Praktikum"
+                                    className="max-w-sm data-[state=checked]:bg-green-500"
+                                />
+                                <p className="basis-3/4 text-sm md:text-base">
+                                    Aslab <strong>{ createForm.aktif ? 'Aktif' : 'Nonaktif' }</strong>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                     <div className="grid gap-2 min-w-80">
-                        <Label htmlFor="npm">No.HP atau Wangsaff Aslab (tidak wajib)</Label>
+                        <Label htmlFor="jabatan">Jabatan Aslab</Label>
                         <Input
                             type="text"
-                            name="no_hp"
-                            id="no_hp"
-                            placeholder="08xxxxxxxxxx"
-                            value={ createForm.noHp }
+                            name="jabatan"
+                            id="jabatan"
+                            value={ createForm.jabatan }
                             onChange={ (event) =>
                                 setCreateForm((prevState) => ({
                                     ...prevState,
-                                    noHp: event.target.value.replace(/[^0-9]/g, ""),
+                                    jabatan: event.target.value,
                                 }))
                             }
                         />
                     </div>
-                    <Button type="submit" disabled={ createForm.onSubmit || !createForm.nama || !createForm.npm || !createForm.username || !createForm.password }>
+                    <Button type="submit"
+                            disabled={ createForm.onSubmit || !createForm.nama || !createForm.npm || !createForm.username || !createForm.password || !createForm.jabatan }>
                         { createForm.onSubmit
                             ? (
                                 <>Memproses <Loader2 className="animate-spin"/></>

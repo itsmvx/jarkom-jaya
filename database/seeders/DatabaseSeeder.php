@@ -15,11 +15,14 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminSeeder::class,
             AslabSeeder::class,
-            PraktikanSeeder::class,
             JenisPraktikumSeeder::class,
             PeriodePraktikumSeeder::class,
+            PraktikumSeeder::class,
+            PertemuanSeeder::class,
+
             LabelSeeder::class,
 
+            PraktikanSeeder::class,
         ]);
     }
 }

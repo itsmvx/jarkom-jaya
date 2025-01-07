@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('username')->unique();
             $table->string('password');
             $table->string('avatar')->nullable();
+            $table->string('jabatan');
+            $table->boolean('aktif')->default(true);
             $table->timestamps();
         });
     }

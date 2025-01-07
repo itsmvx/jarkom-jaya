@@ -7,6 +7,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class ModulController extends Controller
 {
@@ -32,9 +33,16 @@ class ModulController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nama' => 'required|string',
+            'nama' => [
+                'required',
+                'string',
+                Rule::unique('modul', 'nama')
+                    ->where('pertemuan_id', $request->pertemuan_id ?? ''),
+            ],
             'topik' => 'required|string',
             'pertemuan_id' => 'required|exists:pertemuan,id',
+        ], [
+            'nama.unique' => 'Nama modul sudah ada untuk pertemuan yang dipilih.',
         ]);
 
         try {
@@ -44,6 +52,7 @@ class ModulController extends Controller
                 'topik' => $validated['topik'],
                 'pertemuan_id' => $validated['pertemuan_id'],
             ]);
+
             return Response::json([
                 'message' => 'Modul Pertemuan berhasil ditambahkan!'
             ]);
@@ -79,16 +88,25 @@ class ModulController extends Controller
     {
         $validated = $request->validate([
             'id' => 'required|exists:modul,id',
-            'nama' => 'required|string',
+            'nama' => [
+                'required',
+                'string',
+                Rule::unique('modul', 'nama')
+                    ->where('pertemuan_id', $request->pertemuan_id ?? '')
+                    ->ignore($request->id),
+            ],
             'topik' => 'required|string',
+        ], [
+            'nama.unique' => 'Nama modul sudah ada untuk pertemuan yang dipilih.',
         ]);
 
         try {
             $modul = Modul::findOrFail($validated['id']);
             $modul->update([
                 'nama' => $validated['nama'],
-                'topik' => $validated['topik']
+                'topik' => $validated['topik'],
             ]);
+
             return Response::json([
                 'message' => 'Modul Pertemuan berhasil diperbarui!'
             ]);

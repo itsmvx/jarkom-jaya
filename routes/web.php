@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminPagesController;
 use App\Http\Controllers\AslabController;
 use App\Http\Controllers\JenisPraktikumController;
+use App\Http\Controllers\KuisController;
 use App\Http\Controllers\LabelController;
 use App\Http\Controllers\ModulController;
 use App\Http\Controllers\PeriodePraktikumController;
@@ -49,7 +50,7 @@ Route::get('/hall-of-fames', function () {
 })->name('hall-of-fames');
 
 Route::prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', [AdminPagesController::class, 'dashboardAdminPage'])->name('dashboard');
+    Route::get('/dashboard', [AdminPagesController::class, 'dashboardPage'])->name('dashboard');
     Route::prefix('aslab')->name('aslab.')->group(function () {
         Route::get('/', [AdminPagesController::class, 'aslabIndexPage'])->name('index');
         Route::get('/create', [AdminPagesController::class, 'aslabCreatePage'])->name('create');
@@ -79,7 +80,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/', [AdminPagesController::class, 'soalIndexPage'])->name('index');
             Route::get('/create', [AdminPagesController::class, 'soalCreatePage'])->name('create');
             Route::get('/create-upload', [AdminPagesController::class, 'soalCreateUploadPage'])->name('create-upload');
+            Route::get('/update', [AdminPagesController::class, 'soalUpdatePage'])->name('update');
         });
+
+        Route::get('/', [AdminPagesController::class, 'kuisIndexPage'])->name('index');
+        Route::get('/create', [AdminPagesController::class, 'kuisCreatePage'])->name('create');
+        Route::get('/update', [AdminPagesController::class, 'kuisUpdatePage'])->name('update');
+        Route::get('/view', [AdminPagesController::class, 'kuisViewPage'])->name('view');
     });
 });
 Route::get('/login-admin', [AdminPagesController::class, 'loginAdminPage'])->name('admin.login');
@@ -134,5 +141,14 @@ Route::prefix('soal')->name('soal.')->group(function () {
     Route::post('/update', [SoalController::class, 'update'])->name('update');
     Route::post('/delete', [SoalController::class, 'destroy'])->name('delete');
 });
+Route::prefix('kuis')->name('kuis.')->group(function () {
+    Route::post('/create', [KuisController::class, 'store'])->name('create');
+    Route::post('/update', [KuisController::class, 'update'])->name('update');
+    Route::post('/delete', [KuisController::class, 'destroy'])->name('delete');
+});
 
-
+Route::get('/kuis', function () {
+    return Inertia::render('KuisTest', [
+        'soals' => \App\Models\Soal::select('id','pertanyaan','pilihan_jawaban')->limit(50)->get(),
+    ]);
+});

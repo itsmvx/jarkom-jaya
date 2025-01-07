@@ -3,6 +3,7 @@ import { Bell } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Glacio, Havoc, Spectro } from "@/lib/StaticImagesLib";
+import Cookies from "js-cookie";
 
 export const AppLayout = ({ children }: {
     children: ReactNode;
@@ -10,10 +11,10 @@ export const AppLayout = ({ children }: {
     const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => {
-        const hasVisited = localStorage.getItem('hasVisited')
+        const hasVisited = Cookies.get("visited");
         if (!hasVisited) {
             setIsOpen(true)
-            localStorage.setItem('hasVisited', 'true')
+            Cookies.set('visited', 'YRSKA')
         }
     }, []);
 

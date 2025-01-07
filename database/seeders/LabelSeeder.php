@@ -14,7 +14,7 @@ class LabelSeeder extends Seeder
      */
     public function run(): void
     {
-        $labels = ['Modul 1', 'Modul 2', 'Modul 3', 'Modul 4', 'Pre-Test', 'Welcome', 'Ez', 'Hard', 'Yapping'];
+        $labels = ['Modul 1', 'Modul 2', 'Modul 3', 'Modul 4', 'Pre-Test', 'Welcome', 'Ez', 'Hard', 'Yapping', 'Sistem Operasi', 'Jaringan Komputer', 'Rev.2019'];
 
         foreach ($labels as $label) {
             Label::create([

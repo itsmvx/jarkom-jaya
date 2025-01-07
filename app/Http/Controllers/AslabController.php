@@ -38,6 +38,8 @@ class AslabController extends Controller
             'no_hp' => 'nullable|string|min:1',
             'username' => 'required|string|min:1|unique:aslab,username',
             'password' => 'required|string|min:1',
+            'aktif' => 'required|boolean',
+            'jabatan' => 'required|string|min:1',
         ]);
 
         try {
@@ -48,6 +50,8 @@ class AslabController extends Controller
                 'no_hp' => $validated['no_hp'] ?? null,
                 'username' => $validated['username'],
                 'password' => Hash::make($validated['password'], ['rounds' => 12]),
+                'aktif' => $validated['aktif'],
+                'jabatan' => $validated['jabatan'],
             ]);
 
             return Response::json([
@@ -89,6 +93,8 @@ class AslabController extends Controller
             'npm' => 'required|string|min:1|unique:aslab,npm,' . $request->id,
             'no_hp' => 'nullable|string|min:1',
             'username' => 'required|string|min:1|unique:aslab,username,' . $request->id,
+            'aktif' => 'required|boolean',
+            'jabatan' => 'required|string|min:1',
         ]);
 
         try {
@@ -97,6 +103,8 @@ class AslabController extends Controller
                 'npm' => $validated['npm'],
                 'no_hp' => $validated['no_hp'],
                 'username' => $validated['username'],
+                'aktif' => $validated['aktif'],
+                'jabatan' => $validated['jabatan'],
             ]);
 
             return Response::json([

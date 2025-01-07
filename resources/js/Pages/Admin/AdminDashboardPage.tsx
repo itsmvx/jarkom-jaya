@@ -14,10 +14,16 @@ import {
 } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import * as React from "react";
 
-export default function AdminDashboardPage() {
+export default function AdminDashboardPage({ aslabs }: {
+    aslabs: {
+        nama: string;
+        npm: string;
+        jabatan: string;
+    }[];
+}) {
     const KuisAktif = [
         {
             nama: 'Kuis Pertemuan 1 - SO XXXVIII',
@@ -40,17 +46,6 @@ export default function AdminDashboardPage() {
             praktikum: 'Jaringan Komputer XXXVIII'
         },
     ];
-    const AslabAktif = [
-        { npm: '06.2021.1.07397', nama: 'Mochamad Luthfan Rianda Putra' },
-        { npm: '06.2021.1.07434', nama: 'Indy Adira Khalfani' },
-        { npm: '06.2021.1.07461', nama: 'Latiful Sirri' },
-        { npm: '06.2021.1.07482', nama: 'Chatarina natassya putri' },
-        { npm: '06.2022.1.07587', nama: 'Afzal Musyaffa Lathif Ashrafil Adam' },
-        { npm: '06.2022.1.07590', nama: 'Windi Nitasya Lubis' },
-        { npm: '06.2022.1.07610', nama: 'Marikh kasiful izzat' },
-        { npm: '06.2022.1.07626', nama: 'Gregoria Stefania Kue Siga' }
-    ];
-
     const chartDataPraktikum = [
         { praktikum: "Sistem Operasi XXXVI", lulus: 90, gugur: 7 },
         { praktikum: "Jaringan Komputer XXXVI", lulus: 83, gugur: 2 },
@@ -123,12 +118,12 @@ export default function AdminDashboardPage() {
                             <CardHeader>
                                 <CardTitle>Aslab Aktif</CardTitle>
                                 <CardDescription>
-                                    { AslabAktif.length } Aslab aktif saat ini
+                                    { aslabs.length } Aslab aktif saat ini
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="grid gap-4">
                                 {
-                                    AslabAktif.map((aslab, index) => ((
+                                    aslabs.map((aslab, index) => ((
                                         <div key={index} className="flex items-center space-x-4 rounded-md border p-4 truncate [&_p]:truncate">
                                             <div className="h-7">
                                                 <img src={ MahiruCirle } alt="profile" width={ 30 }/>
@@ -140,13 +135,16 @@ export default function AdminDashboardPage() {
                                                 <p className="text-sm text-muted-foreground">
                                                     { aslab.npm }
                                                 </p>
+                                                <p className="!-mt-0.5 text-sm text-muted-foreground">
+                                                    { aslab.jabatan }
+                                                </p>
                                             </div>
                                         </div>
                                     )))
                                 }
                             </CardContent>
                             <CardFooter className="mt-auto">
-                                <Button className="w-full">
+                                <Button className="w-full" onClick={() => router.visit(route('admin.aslab.index'))}>
                                     Manajemen Aslab <ArrowRight/>
                                 </Button>
                             </CardFooter>
@@ -189,12 +187,12 @@ export default function AdminDashboardPage() {
                            <CardHeader>
                                <CardTitle>Aslab Aktif (SARAN KONTEN?)</CardTitle>
                                <CardDescription>
-                                   { AslabAktif.length } Aslab aktif saat ini
+                                   { aslabs.length } Aslab aktif saat ini
                                </CardDescription>
                            </CardHeader>
                            <CardContent className="grid gap-4">
                                {
-                                   AslabAktif.map((aslab, index) => ((
+                                   aslabs.map((aslab, index) => ((
                                        <div key={index} className="flex items-center space-x-4 rounded-md border p-4 truncate [&_p]:truncate">
                                            <div className="h-7">
                                                <img src={ MahiruCirle } alt="profile" width={ 30 }/>

@@ -4,14 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Aslab;
 use App\Models\JenisPraktikum;
+use App\Models\Kuis;
 use App\Models\Label;
 use App\Models\PeriodePraktikum;
+use App\Models\Pertemuan;
 use App\Models\Praktikan;
 use App\Models\Praktikum;
 use App\Models\Soal;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class AdminPagesController extends Controller
@@ -20,9 +23,11 @@ class AdminPagesController extends Controller
     {
         return Inertia::render('Admin/AdminLoginPage');
     }
-    public function dashboardAdminPage()
+    public function dashboardPage()
     {
-        return Inertia::render('Admin/AdminDashboardPage');
+        return Inertia::render('Admin/AdminDashboardPage', [
+            'aslabs' => fn() => Aslab::select('nama', 'npm', 'jabatan')->where('aktif', '=', true)->orderBy('npm','asc')->orderBy('created_at', 'desc')->get(),
+        ]);
     }
 
     public function jenisPraktikumIndexPage(Request $request)
@@ -201,7 +206,7 @@ class AdminPagesController extends Controller
             $viewPerPage = intval($viewPerPage);
         }
 
-        $query = Aslab::select('id', 'nama', 'npm', 'username', 'no_hp', 'avatar')->orderBy('created_at', 'desc');
+        $query = Aslab::select('id', 'nama', 'npm', 'username', 'no_hp', 'jabatan', 'avatar')->orderBy('created_at', 'desc');
 
         $search = $request->query('search');
         if ($search) {
@@ -229,7 +234,7 @@ class AdminPagesController extends Controller
             $aslab = Aslab::findOrFail($idParam);
 
             return Inertia::render('Admin/AdminAslabUpdatePage', [
-                'aslab' => fn() => $aslab->only(['id', 'nama', 'npm', 'no_hp', 'username']),
+                'aslab' => fn() => $aslab->only(['id', 'nama', 'npm', 'no_hp', 'username', 'aktif', 'jabatan', 'avatar']),
             ]);
         } catch (QueryException $exception) {
             abort(500);
@@ -277,7 +282,7 @@ class AdminPagesController extends Controller
 
         $search = $request->query('search');
         if ($search) {
-            $query->where('nama', 'like', '%' . $search . '%');
+            $query->where('pertanyaan', 'like', '%' . $search . '%');
         }
 
         $soalKuis = $query->paginate($viewPerPage)->withQueryString();
@@ -297,5 +302,119 @@ class AdminPagesController extends Controller
         return Inertia::render('Admin/AdminSoalCreateUploadPage', [
             'labels' => fn() => Label::select('id', 'nama')->orderBy('created_at', 'desc')->get(),
         ]);
+    }
+    public function soalUpdatePage(Request $request)
+    {
+        $idParam = $request->query->get('q');
+        if (!$idParam) {
+            abort(404);
+        }
+
+        try {
+            $soal = Soal::with(['label:id',])->findOrFail($idParam);
+            $formattedSoal = [
+                'id' => $soal->id,
+                'pertanyaan' => $soal->pertanyaan,
+                'pilihan_jawaban' => $soal->pilihan_jawaban,
+                'kunci_jawaban' => $soal->kunci_jawaban,
+                'label' => $soal->label->pluck('id')->toArray(),
+            ];
+
+            return Inertia::render('Admin/AdminSoalUpdatePage', [
+                'soal' => fn() => $formattedSoal,
+                'labels' => fn() => Label::select('id', 'nama')->orderBy('created_at', 'desc')->get(),
+            ]);
+        } catch (QueryException $exception) {
+            abort(500);
+        }
+    }
+    public function kuisIndexPage(Request $request)
+    {
+        $viewList = ["10", "25", "50", "100"];
+        $viewPerPage = $request->query('view');
+
+        if (!in_array($viewPerPage, $viewList)) {
+            $viewPerPage = 10;
+        } else {
+            $viewPerPage = intval($viewPerPage);
+        }
+
+        $query = Kuis::select([
+            'kuis.id as id',
+            'kuis.nama as kuis_nama',
+            'kuis.waktu_mulai',
+            'kuis.waktu_selesai',
+            'pertemuan.id as pertemuan_id',
+            'pertemuan.nama as pertemuan_nama',
+            'praktikum.id as praktikum_id',
+            'praktikum.nama as praktikum_nama',
+            DB::raw('(SELECT COUNT(*) FROM soal_kuis WHERE soal_kuis.kuis_id = kuis.id) as jumlah_soal')
+        ])
+            ->leftJoin('pertemuan', 'kuis.pertemuan_id', '=', 'pertemuan.id')
+            ->leftJoin('praktikum', 'pertemuan.praktikum_id', '=', 'praktikum.id')
+            ->orderBy('kuis.created_at', 'desc');
+
+        $search = $request->query('search');
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('kuis.nama', 'like', '%' . $search . '%')
+                    ->orWhere('pertemuan.nama', 'like', '%' . $search . '%')
+                    ->orWhere('praktikum.nama', 'like', '%' . $search . '%');
+            });
+        }
+
+        $kuis = $query->paginate($viewPerPage)->withQueryString();
+
+        return Inertia::render('Admin/AdminKuisIndexPage', [
+            'pagination' => $kuis
+        ]);
+    }
+    public function kuisCreatePage()
+    {
+        return Inertia::render('Admin/AdminKuisCreatePage', [
+            'currentDate' => Carbon::now('Asia/Jakarta')->toDateTimeString(),
+            'labels' => fn() => Label::select('id', 'nama')->orderBy('created_at', 'desc')->get(),
+            'praktikums' => fn() => Praktikum::select('id','nama')
+                ->where('praktikum.status', true)
+                ->with('pertemuan:id,nama,praktikum_id')
+                ->get()
+        ]);
+    }
+    public function kuisUpdatePage(Request $request)
+    {
+        $idParam = $request->query->get('q');
+        if (!$idParam) {
+            abort(404);
+        }
+
+        try {
+            $kuis = Kuis::with([
+                'label:id',
+            ])
+            ->findOrFail($idParam);
+
+            return Inertia::render('Admin/AdminKuisUpdatePage', [
+                'kuis' => fn() => $kuis->only(['id', 'pertanyaan', 'pilihan_jawaban', 'kunci_jawaban']),
+            ]);
+        } catch (QueryException $exception) {
+            abort(500);
+        }
+    }
+    public function kuisViewPage(Request $request)
+    {
+        $idParam = $request->query->get('q');
+        if (!$idParam) {
+            abort(404);
+        }
+
+        try {
+            $kuis = Kuis::findOrFail($idParam);
+
+            return Inertia::render('Admin/AdminKuisViewPage', [
+                'kuis' => fn() => $kuis->only(['id', 'deskripsi']),
+            ]);
+        } catch (QueryException $exception) {
+            abort(500);
+        }
     }
 }

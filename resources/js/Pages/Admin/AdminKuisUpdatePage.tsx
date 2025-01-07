@@ -14,7 +14,7 @@ import { PageProps } from "@/types";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { IconSwitch } from "@/components/icon-switch";
 
-type Aslab = {
+type Kuis = {
     id: string;
     nama: string;
     npm: string;
@@ -24,8 +24,8 @@ type Aslab = {
     jabatan: string;
 };
 
-export default function AdminAslabUpdatePage({ aslab  }: PageProps<{
-    aslab: Aslab;
+export default function AdminKuisUpdatePage({ aslab  }: PageProps<{
+    aslab: Kuis;
 }>) {
     const { toast } = useToast();
     type UpdateForm = {
@@ -69,11 +69,11 @@ export default function AdminAslabUpdatePage({ aslab  }: PageProps<{
         setUpdateForm((prevState) => ({ ...prevState, onSubmit: true }));
         const { nama, npm, no_hp, username, jabatan, aktif } = updateForm;
         const createSchema = z.object({
-            nama: z.string({ message: 'Format nama Aslab tidak valid! '}).min(1, { message: 'Nama Aslab wajib diisi!' }),
-            npm: z.string({ message: 'Format NPM Aslab tidak valid! '}).min(1, { message: 'NPM Aslab wajib diisi!' }),
-            username: z.string({ message: 'Format Username Aslab tidak valid! '}).min(1, { message: 'Username Aslab wajib diisi!' }),
+            nama: z.string({ message: 'Format nama Kuis tidak valid! '}).min(1, { message: 'Nama Kuis wajib diisi!' }),
+            npm: z.string({ message: 'Format NPM Kuis tidak valid! '}).min(1, { message: 'NPM Kuis wajib diisi!' }),
+            username: z.string({ message: 'Format Username Kuis tidak valid! '}).min(1, { message: 'Username Kuis wajib diisi!' }),
             no_hp: z.string().regex(/^\d{10,15}$/, { message: "Nomor HP harus berupa angka 08xxx 10-15 digit." }).nullable(),
-            jabatan: z.string({ message: 'Format Jabatan Aslab tidak valid! '}).min(1, { message: 'Jabatan Aslab wajib diisi!' }),
+            jabatan: z.string({ message: 'Format Jabatan Kuis tidak valid! '}).min(1, { message: 'Jabatan Kuis wajib diisi!' }),
         });
         const createParse = createSchema.safeParse({
             nama: nama,
@@ -150,12 +150,12 @@ export default function AdminAslabUpdatePage({ aslab  }: PageProps<{
     return (
         <>
             <AdminLayout>
-                <Head title="Admin - Memperbarui Aslab" />
+                <Head title="Admin - Memperbarui Kuis" />
                 <Button variant="ghost" size="icon" onClick={ () => router.visit(route('admin.aslab.index')) }>
                     <ArrowBigLeft />
                 </Button>
                 <CardTitle>
-                    Memperbarui data Aslab
+                    Memperbarui data Kuis
                 </CardTitle>
                 <CardDescription>
                     ...
@@ -163,7 +163,7 @@ export default function AdminAslabUpdatePage({ aslab  }: PageProps<{
                 <form className={ cn("grid items-start gap-4") } onSubmit={ handleUpdateFormSubmit }>
                     <div className="flex flex-col md:flex-row md:flex-wrap gap-3 md:items-center *:grow">
                         <div className="grid gap-2 min-w-80">
-                            <Label htmlFor="nama">Nama Aslab</Label>
+                            <Label htmlFor="nama">Nama Kuis</Label>
                             <Input
                                 type="text"
                                 name="nama"
@@ -173,7 +173,7 @@ export default function AdminAslabUpdatePage({ aslab  }: PageProps<{
                             />
                         </div>
                         <div className="grid gap-2 min-w-80">
-                            <Label htmlFor="npm">NPM Aslab</Label>
+                            <Label htmlFor="npm">NPM Kuis</Label>
                             <Input
                                 type="text"
                                 name="npm"
@@ -186,7 +186,7 @@ export default function AdminAslabUpdatePage({ aslab  }: PageProps<{
                     </div>
                     <div className="flex flex-col md:flex-row md:flex-wrap gap-3 md:items-center *:grow">
                         <div className="grid gap-2 min-w-80">
-                            <Label htmlFor="username">Username Aslab</Label>
+                            <Label htmlFor="username">Username Kuis</Label>
                             <div className="relative">
                                 <Input
                                     id="username"
@@ -223,7 +223,7 @@ export default function AdminAslabUpdatePage({ aslab  }: PageProps<{
                             </div>
                         </div>
                         <div className="grid gap-2 min-w-80">
-                            <Label htmlFor="npm">No.HP atau Wangsaff Aslab (tidak wajib)</Label>
+                            <Label htmlFor="npm">No.HP atau Wangsaff Kuis (tidak wajib)</Label>
                             <Input
                                 type="text"
                                 name="no_hp"
@@ -248,7 +248,7 @@ export default function AdminAslabUpdatePage({ aslab  }: PageProps<{
                         </div>
                         <div className="min-w-80 flex-1 grid gap-2">
                             <Label htmlFor="status-switch">
-                                Status Aslab
+                                Status Kuis
                             </Label>
                             <div className="basis-1/2 flex flex-row gap-1.5 items-center">
                                 <IconSwitch
@@ -257,11 +257,11 @@ export default function AdminAslabUpdatePage({ aslab  }: PageProps<{
                                     uncheckedIcon={ <X className="w-4 h-4 text-red-600" /> }
                                     checked={ updateForm.aktif }
                                     onCheckedChange={(checked) => handleUpdateForm('aktif', checked)}
-                                    aria-label="Status Aslab"
+                                    aria-label="Status Kuis"
                                     className="max-w-sm data-[state=checked]:bg-green-500"
                                 />
                                 <p className="basis-3/4 text-sm md:text-base">
-                                    Aslab <strong>{ updateForm.aktif ? 'Aktif' : 'Nonaktif' }</strong>
+                                    Kuis <strong>{ updateForm.aktif ? 'Aktif' : 'Nonaktif' }</strong>
                                 </p>
                             </div>
                         </div>

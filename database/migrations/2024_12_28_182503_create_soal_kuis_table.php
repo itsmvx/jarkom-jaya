@@ -11,16 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('kuis', function (Blueprint $table) {
+        Schema::create('soal_kuis', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('nama');
-            $table->text('deskripsi');
-            $table->dateTime('waktu_mulai');
-            $table->dateTime('waktu_selesai');
-
-            $table->foreignUuid('pertemuan_id')->constrained('pertemuan')->cascadeOnDelete();
-            $table->index(['waktu_mulai', 'waktu_selesai']);
+            $table->foreignUuid('soal_id')->constrained('soal')->cascadeOnDelete();
+            $table->foreignUuid('kuis_id')->constrained('kuis')->cascadeOnDelete();
             $table->timestamps();
+
+            $table->unique(['soal_id', 'kuis_id']);
         });
     }
 
@@ -29,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('kuis');
+        Schema::dropIfExists('soal_kuis');
     }
 };

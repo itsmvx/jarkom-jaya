@@ -16,4 +16,8 @@ class Soal extends Model
     {
         return $this->belongsToMany(Label::class, 'label_soal', 'soal_id', 'label_id');
     }
+    public function kuis()
+    {
+        return $this->belongsToMany(Kuis::class, 'soal_kuis', 'soal_id', 'kuis_id');
+    }
 }

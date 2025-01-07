@@ -150,7 +150,7 @@ export default function AdminSoalIndexPage({ pagination }: {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={ () => router.visit(route('admin.aslab.update', { q: originalRow.id })) }>
+                            <DropdownMenuItem onClick={ () => router.visit(route('admin.kuis.soal.update', { q: originalRow.id })) }>
                                 <Pencil /> Ubah data
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={ () => {

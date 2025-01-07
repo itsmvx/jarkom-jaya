@@ -11,4 +11,7 @@ class Aslab extends Authenticatable
     protected $table = 'aslab';
     protected $primaryKey = 'id';
     protected $guarded = ['id'];
+    protected $casts = [
+        'aktif' => 'boolean',
+    ];
 }
