@@ -17,35 +17,21 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Head, router } from "@inertiajs/react";
 import * as React from "react";
 
-export default function AdminDashboardPage({ aslabs }: {
+export default function AdminDashboardPage({ aslabs, kuis }: {
     aslabs: {
         nama: string;
         npm: string;
         jabatan: string;
     }[];
+    kuis: {
+        id: string;
+        nama: string;
+        praktikum: {
+            id: string;
+            nama: string;
+        };
+    }[];
 }) {
-    const KuisAktif = [
-        {
-            nama: 'Kuis Pertemuan 1 - SO XXXVIII',
-            praktikum: 'Sistem Operasi XXXVIII'
-        },
-        {
-            nama: 'Kuis Pertemuan 2 - SO XXXVIII',
-            praktikum: 'Sistem Operasi XXXVIII'
-        },
-        {
-            nama: 'Kuis Pertemuan 3 - SO XXXVIII',
-            praktikum: 'Sistem Operasi XXXVIII'
-        },
-        {
-            nama: 'Kuis Pertemuan 4 - SO XXXVIII',
-            praktikum: 'Sistem Operasi XXXVIII'
-        },
-        {
-            nama: 'Kuis Pertemuan 1 - Jarkom XXXVIII',
-            praktikum: 'Jaringan Komputer XXXVIII'
-        },
-    ];
     const chartDataPraktikum = [
         { praktikum: "Sistem Operasi XXXVI", lulus: 90, gugur: 7 },
         { praktikum: "Jaringan Komputer XXXVI", lulus: 83, gugur: 2 },
@@ -72,16 +58,16 @@ export default function AdminDashboardPage({ aslabs }: {
                 <Head title="Admin - Dashboard" />
                 <div className="flex flex-col lg:flex-row gap-3">
                     <Card className="flex flex-col w-full lg:w-2/3 lg:min-w-[26rem] h-[27rem] lg:h-[32rem] overflow-y-auto rounded">
+                        <CardHeader>
+                            <CardTitle>Jadwal Kuis</CardTitle>
+                            <CardDescription>
+                                { kuis.length } Kuis mendatang
+                            </CardDescription>
+                        </CardHeader>
                         <ScrollArea>
-                            <CardHeader>
-                                <CardTitle>Sesi Kuis Aktif</CardTitle>
-                                <CardDescription>
-                                    { KuisAktif.length } Sesi aktif mendatang
-                                </CardDescription>
-                            </CardHeader>
                             <CardContent className="grid gap-4">
                                 {
-                                    KuisAktif.map((kuis, index) => ((
+                                    kuis.length > 0 ? kuis.map((kuis, index) => ((
                                         <div key={index} className="flex items-center space-x-4 rounded-md border p-4 truncate [&_p]:truncate">
                                             <BookOpenText/>
                                             <div className="space-y-1 flex-1 truncate overflow-hidden">
@@ -89,7 +75,7 @@ export default function AdminDashboardPage({ aslabs }: {
                                                     { kuis.nama }
                                                 </p>
                                                 <p className="text-sm text-muted-foreground">
-                                                    { kuis.praktikum }
+                                                    { kuis.praktikum.nama }
                                                 </p>
                                             </div>
                                             <TooltipProvider>
@@ -103,28 +89,36 @@ export default function AdminDashboardPage({ aslabs }: {
                                                 </Tooltip>
                                             </TooltipProvider>
                                         </div>
-                                    )))
+                                    ))) : (
+                                        <div
+                                            className="flex items-center space-x-4 rounded-md border p-3 truncate [&_p]:truncate">
+                                            <p className="text-sm font-medium text-muted-foreground/80">
+                                                Tidak ada kuis mendatang
+                                            </p>
+                                        </div>
+                                    )
                                 }
                             </CardContent>
-                            <CardFooter className="mt-auto">
-                                <Button className="w-full">
-                                    Manajemen Kuis <ArrowRight/>
-                                </Button>
-                            </CardFooter>
                         </ScrollArea>
+                        <CardFooter className="mt-auto">
+                            <Button className="w-full">
+                                Manajemen Kuis <ArrowRight/>
+                            </Button>
+                        </CardFooter>
                     </Card>
                     <Card className="flex flex-col w-full lg:w-1/3 lg:min-w-[23rem] h-[27rem] lg:h-[32rem] overflow-y-auto rounded">
+                        <CardHeader>
+                            <CardTitle>Aslab Aktif</CardTitle>
+                            <CardDescription>
+                                { aslabs.length } Aslab aktif saat ini
+                            </CardDescription>
+                        </CardHeader>
                         <ScrollArea>
-                            <CardHeader>
-                                <CardTitle>Aslab Aktif</CardTitle>
-                                <CardDescription>
-                                    { aslabs.length } Aslab aktif saat ini
-                                </CardDescription>
-                            </CardHeader>
                             <CardContent className="grid gap-4">
                                 {
                                     aslabs.map((aslab, index) => ((
-                                        <div key={index} className="flex items-center space-x-4 rounded-md border p-4 truncate [&_p]:truncate">
+                                        <div key={ index }
+                                             className="flex items-center space-x-4 rounded-md border p-4 truncate [&_p]:truncate">
                                             <div className="h-7">
                                                 <img src={ MahiruCirle } alt="profile" width={ 30 }/>
                                             </div>
@@ -143,12 +137,12 @@ export default function AdminDashboardPage({ aslabs }: {
                                     )))
                                 }
                             </CardContent>
-                            <CardFooter className="mt-auto">
-                                <Button className="w-full" onClick={() => router.visit(route('admin.aslab.index'))}>
-                                    Manajemen Aslab <ArrowRight/>
-                                </Button>
-                            </CardFooter>
                         </ScrollArea>
+                        <CardFooter className="mt-auto">
+                            <Button className="w-full" onClick={() => router.visit(route('admin.aslab.index'))}>
+                                Manajemen Aslab <ArrowRight/>
+                            </Button>
+                        </CardFooter>
                     </Card>
                 </div>
                 <div className="w-full flex flex-col lg:flex-row gap-3">

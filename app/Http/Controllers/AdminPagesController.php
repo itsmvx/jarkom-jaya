@@ -25,8 +25,26 @@ class AdminPagesController extends Controller
     }
     public function dashboardPage()
     {
+        $kuis = Kuis::with(['pertemuan.praktikum:id,nama'])
+            ->where('waktu_mulai', '>', Carbon::now('Asia/Jakarta'))
+            ->orderBy('waktu_mulai', 'asc')
+            ->get(['id', 'nama', 'waktu_mulai', 'waktu_selesai', 'pertemuan_id']);
+
         return Inertia::render('Admin/AdminDashboardPage', [
             'aslabs' => fn() => Aslab::select('nama', 'npm', 'jabatan')->where('aktif', '=', true)->orderBy('npm','asc')->orderBy('created_at', 'desc')->get(),
+            'kuis' => fn() => $kuis->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama' => $item->nama,
+                    'waktu_mulai' => $item->waktu_mulai,
+                    'waktu_selesai' => $item->waktu_selesai,
+                    'praktikum' => [
+                        'id' => $item->pertemuan->praktikum->id,
+                        'nama' => $item->pertemuan->praktikum->nama,
+                    ],
+                ];
+            }),
+            'raw' => $kuis
         ]);
     }
 
