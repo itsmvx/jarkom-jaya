@@ -406,13 +406,26 @@ class AdminPagesController extends Controller
         }
 
         try {
-            $kuis = Kuis::with([
-                'label:id',
-            ])
-            ->findOrFail($idParam);
+            $kuis = Kuis::with('soal:id,pertanyaan')->findOrFail($idParam);
 
             return Inertia::render('Admin/AdminKuisUpdatePage', [
-                'kuis' => fn() => $kuis->only(['id', 'pertanyaan', 'pilihan_jawaban', 'kunci_jawaban']),
+                'kuis' => fn() => [
+                    'id' => $kuis->id,
+                    'nama' => $kuis->nama,
+                    'deskripsi' => $kuis->deskripsi,
+                    'waktu_mulai' => $kuis->waktu_mulai,
+                    'waktu_selesai' => $kuis->waktu_selesai,
+                    'pertemuan_id' => $kuis->pertemuan_id,
+                    'soal' => $kuis->soal->map(fn ($item) => [
+                        'id' => $item->id,
+                        'pertanyaan' => $item->pertanyaan,
+                    ])
+                ],
+                'labels' => fn() => Label::select('id', 'nama')->orderBy('created_at', 'desc')->get(),
+                'praktikums' => fn() => Praktikum::select('id','nama')
+                    ->where('praktikum.status', true)
+                    ->with('pertemuan:id,nama,praktikum_id')
+                    ->get()
             ]);
         } catch (QueryException $exception) {
             abort(500);

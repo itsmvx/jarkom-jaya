@@ -63,6 +63,8 @@ export default function AdminKuisCreatePage({ praktikums, labels }: {
         data: DataSoalKuis;
         onLoad: boolean;
         onReady: boolean;
+        limit: number;
+        loadMessage: string;
     };
     type LabelSelection = {
         data: string[];
@@ -83,7 +85,9 @@ export default function AdminKuisCreatePage({ praktikums, labels }: {
             selected: [],
         },
         onLoad: false,
-        onReady: false
+        onReady: false,
+        limit: 50,
+        loadMessage: "",
     };
     const labelSelectionInit: LabelSelection = {
         data: [],
@@ -128,9 +132,20 @@ export default function AdminKuisCreatePage({ praktikums, labels }: {
             }
         })
             .then(res => {
+                let duplicate = 0;
+                const filteredUnselected = res.data.data.filter(item => {
+                    const isDuplicate = soalKuis.data.selected.some(selectedItem => selectedItem.value === item.id);
+
+                    if (isDuplicate) {
+                        duplicate++;
+                    }
+
+                    return !isDuplicate;
+                });
+
                 const newSoalKuisData = {
                     selected: soalKuis.data.selected,
-                    unselected: res.data.data.map((item) => {
+                    unselected: filteredUnselected.map((item) => {
                         const delta = JSON.parse(item.pertanyaan);
                         const text = delta.ops.map((op: { insert: string }) => op.insert).join("");
 
@@ -146,6 +161,7 @@ export default function AdminKuisCreatePage({ praktikums, labels }: {
                     data: newSoalKuisData,
                     onLoad: false,
                     onReady: true,
+                    loadMessage: duplicate ? `Terdapat ${duplicate} data yang sudah terpilih, tidak dimasukkan` : ''
                 }));
 
                 setLabelSelection((prevState) => ({
@@ -247,8 +263,6 @@ export default function AdminKuisCreatePage({ praktikums, labels }: {
         }
     }, [createForm.pertemuan_id]);
 
-    console.log(createForm.deskripsi);
-
     return (
         <>
             <AdminLayout>
@@ -326,7 +340,8 @@ export default function AdminKuisCreatePage({ praktikums, labels }: {
                                 if (date) {
                                     handleFormChange('waktu_selesai', date)
                                 }
-                            }}                        />
+                            }}
+                        />
                     </div>
 
                     <div className="grid gap-2 min-w-80">
@@ -358,6 +373,10 @@ export default function AdminKuisCreatePage({ praktikums, labels }: {
                                     className={ `${ labelSelection.onFetch ? 'animate-spin' : 'animate-none' }` }/>
                             </Button>
                         </div>
+                        <p className="mt-3 -mb-3 text-sm text-red-500/90 font-medium flex flex-col gap-1">
+                            <span className="text-green-600/90">{ soalKuis.loadMessage ? 'Berhasil mengambil data!' : '' }</span>
+                            { soalKuis.loadMessage ? soalKuis.loadMessage : '' }
+                        </p>
                         <div className="w-full overflow-x-auto">
                             <TransferListBox
                                 initialValue={ soalKuis.data }
@@ -378,7 +397,7 @@ export default function AdminKuisCreatePage({ praktikums, labels }: {
                         disabled={ createForm.onSubmit || !createForm.nama || !createForm.pertemuan_id || !createForm.waktu_mulai || !createForm.waktu_selesai }
                         className="w-min ml-auto"
                     >
-                        { createForm.onSubmit
+                    { createForm.onSubmit
                             ? (
                                 <>Memproses <Loader2 className="animate-spin"/></>
                             ) : (
