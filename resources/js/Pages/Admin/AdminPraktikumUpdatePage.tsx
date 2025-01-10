@@ -7,15 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { cn, romanToNumber } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-    ArrowBigLeft,
-    BookMarked,
-    Check,
-    Copy,
-    Hash,
-    Loader2, Pencil, Plus, Trash2,
-    X
-} from "lucide-react";
+import { ArrowBigLeft, BookMarked, Check, Copy, Hash, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { z } from "zod";
 import axios, { AxiosError } from "axios";
 import { useToast } from "@/hooks/use-toast";
@@ -23,20 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { IconSwitch } from "@/components/icon-switch";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
-import {
-    Drawer, DrawerClose,
-    DrawerContent,
-    DrawerDescription, DrawerFooter,
-    DrawerHeader,
-    DrawerTitle,
-} from "@/components/ui/drawer";
-import {
-    AlertDialog, AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogHeader,
-    AlertDialogTitle
-} from "@/components/ui/alert-dialog";
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, } from "@/components/ui/drawer";
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 type IDNama = {
     id: string;
@@ -185,13 +165,39 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
         nama: string;
         onSubmit: boolean;
     };
+    type UpdatePertemuan = {
+        id: string;
+        nama: string;
+        onSubmit: boolean;
+    };
+    type DeletePertemuan = {
+        id: string;
+        nama: string;
+        validation: string;
+        onSubmit: boolean;
+    };
     const createPertemuanInit: CreatePertemuan = {
         nama: '',
         onSubmit: false,
     };
+    const updatePertemuanInit: UpdatePertemuan = {
+        id: '',
+        nama: '',
+        onSubmit: false,
+    };
+    const deletePertemuanInit: DeletePertemuan = {
+        id: '',
+        nama: '',
+        validation: '',
+        onSubmit: false,
+    };
 
     const [ openCreatePertemuan, setOpenCreatePertemuan ] = useState(false);
+    const [ openDeletePertemuan, setOpenDeletePertemuan ] = useState(false);
+
     const [ createPertemuan, setCreatePertemuan ] = useState<CreatePertemuan>(createPertemuanInit);
+    const [ updatePertemuan, setUpdatePertemuan ] = useState<UpdatePertemuan>(updatePertemuanInit);
+    const [ deletePertemuan, setDeletePertemuan ] = useState<DeletePertemuan>(deletePertemuanInit);
 
     const handleCreatePertemuanSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -236,6 +242,126 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
                     ? err.response.data.message
                     : 'Error tidak diketahui terjadi!';
                 setCreatePertemuan((prevState) => ({ ...prevState, onSubmit: false }));
+                toast({
+                    variant: "destructive",
+                    title: "Permintaan gagal diproses!",
+                    description: errMsg,
+                });
+            });
+    };
+    const handleOpenUpdatePertemuan = (pertemuan: IDNama) => {
+        setUpdatePertemuan((prevState) => ({
+            ...prevState,
+            id: pertemuan.id,
+            nama: pertemuan.nama,
+        }));
+    };
+    const handleChangeUpdatePertemuan = (key: keyof UpdatePertemuan, value: string | boolean) => {
+        setUpdatePertemuan((prevState) => ({ ...prevState, [key]: value }));
+    };
+    const handleSubmitUpdatePertemuan = () => {
+        setUpdatePertemuan((prevState) => ({
+            ...prevState,
+            onSubmit: true
+        }));
+        const { id, nama } = updatePertemuan;
+        const updateSchema = z.object({
+            id: z.string({ message: 'Format Modul tidak valid! '}).min(1, { message: 'Format Pertemuan Praktikum tidak valid!' }),
+            nama: z.string({ message: 'Format nama Modul tidak valid! '}).min(1, { message: 'Nama Pertemuan Praktikum wajib diisi!' }),
+        });
+        const updateParse = updateSchema.safeParse({
+            id: id,
+            nama: nama,
+        });
+        if (!updateParse.success) {
+            const errMsg = updateParse.error.issues[0]?.message;
+            toast({
+                variant: "destructive",
+                title: "Periksa kembali Input anda!",
+                description: errMsg,
+            });
+            setUpdatePertemuan((prevState) => ({ ...prevState, onSubmit: false }));
+            return;
+        }
+
+        axios.post<{
+            message: string;
+        }>(route('pertemuan.update'), {
+            id: id,
+            nama: nama,
+        })
+            .then((res) => {
+                setUpdatePertemuan(updatePertemuanInit);
+                toast({
+                    variant: 'default',
+                    className: 'bg-green-500 text-white',
+                    title: "Berhasil!",
+                    description: res.data.message,
+                });
+                router.reload({ only: ['praktikum'] });
+            })
+            .catch((err: unknown) => {
+                const errMsg: string = err instanceof AxiosError && err.response?.data?.message
+                    ? err.response.data.message
+                    : 'Error tidak diketahui terjadi!';
+                setUpdatePertemuan((prevState) => ({ ...prevState, onSubmit: false }));
+                toast({
+                    variant: "destructive",
+                    title: "Permintaan gagal diproses!",
+                    description: errMsg,
+                });
+            });
+    };
+    const handleOpenDeletePertemuan = (pertemuan: IDNama) => {
+        setDeletePertemuan((prevState) => ({
+            ...prevState,
+            id: pertemuan.id,
+            nama: pertemuan.nama,
+        }));
+        setOpenDeletePertemuan(true);
+    };
+    const handleDeletePertemuanSubmit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setDeletePertemuan((prevState) => ({ ...prevState, onSubmit: true }));
+        const { id } = deletePertemuan;
+        const deleteSchema = z.object({
+            id: z.string({ message: 'Format Pertemuan Praktikum tidak valid! '}).min(1, { message: 'Format Pertemuan Praktikum tidak valid!' }),
+        });
+        const deleteParse = deleteSchema.safeParse({
+            id: id,
+        });
+        if (!deleteParse.success) {
+            const errMsg = deleteParse.error.issues[0]?.message;
+            toast({
+                variant: "destructive",
+                title: "Periksa kembali Input anda!",
+                description: errMsg,
+            });
+            setDeletePertemuan((prevState) => ({ ...prevState, onSubmit: false }));
+            return;
+        }
+
+        axios.post<{
+            message: string;
+        }>(route('pertemuan.delete'), {
+            id: id,
+        })
+            .then((res) => {
+                setDeletePertemuan(deletePertemuanInit);
+                setOpenDeletePertemuan(false);
+                toast({
+                    variant: 'default',
+                    className: 'bg-green-500 text-white',
+                    title: "Berhasil!",
+                    description: res.data.message,
+                });
+                router.reload({ only: ['praktikum'] });
+            })
+            .catch((err: unknown) => {
+                const errMsg: string = err instanceof AxiosError && err.response?.data?.message
+                    ? err.response.data.message
+                    : 'Error tidak diketahui terjadi!';
+                setDeletePertemuan((prevState) => ({ ...prevState, onSubmit: false }));
                 toast({
                     variant: "destructive",
                     title: "Permintaan gagal diproses!",
@@ -585,7 +711,7 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
                         </h3>
                         {praktikum.pertemuan.length > 0 && (
                             <Button size="sm" className="-mt-3" onClick={() => setOpenCreatePertemuan(true)}>
-                                <span className="hidden lg:block">Tambahkan</span>
+                                <span className="hidden lg:block">Pertemuan</span>
                                 <Plus/>
                             </Button>
                         )}
@@ -593,33 +719,65 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
                     <div className="space-y-4">
                         { praktikum.pertemuan.length > 0 ? praktikum.pertemuan.map((pertemuan) => (
                             <Card key={ pertemuan.id } className="rounded-sm shadow-none border-muted-foreground/40">
-                                <CardHeader>
-                                    <CardTitle className="flex items-center justify-between">
-                                        <span>{pertemuan.nama}</span>
-                                    </CardTitle>
-                                    <CardDescription className="flex items-center gap-0">
-                                        <Hash width={15} />
-                                        <div className="flex items-center gap-1">
-                                            <p className="text-xs line-clamp-1 text-ellipsis">{pertemuan.id}</p>
-                                            <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => handleSetClipboard(pertemuan.id)}>
-                                                { clipboard === pertemuan.id
-                                                    ? (
-                                                        <Check width={15} />
+                                <div className="flex flex-row gap-2 justify-between">
+                                    <CardHeader>
+                                        { updatePertemuan.id === pertemuan.id ? (
+                                            <Input value={ updatePertemuan.nama } onChange={(event) => handleChangeUpdatePertemuan('nama', event.target.value)} className="font-semibold" autoFocus={true} />
+                                        ) : (
+                                            <CardTitle className="flex items-center justify-between">
+                                                <span>{ pertemuan.nama }</span>
+                                            </CardTitle>
+                                        )}
+                                        <CardDescription className="flex items-center gap-0">
+                                            <Hash width={ 15 }/>
+                                            <div className="flex items-center gap-1">
+                                                <p className="text-xs line-clamp-1 text-ellipsis">{ pertemuan.id }</p>
+                                                <Button variant="ghost" size="icon" className="w-7 h-7" onClick={ () => handleSetClipboard(pertemuan.id) }>
+                                                    { clipboard === pertemuan.id
+                                                        ? (
+                                                            <Check width={ 15 }/>
+                                                        ) : (
+                                                            <Copy width={ 15 }/>
+                                                        )
+                                                    }
+                                                </Button>
+                                            </div>
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <div className="p-6 space-x-1">
+                                        {updatePertemuan.id === pertemuan.id ? (
+                                            <>
+                                                <Button className="bg-green-600 hover:bg-green-600/80" disabled={updatePertemuan.id === pertemuan.id && updatePertemuan.nama === pertemuan.nama } onClick={handleSubmitUpdatePertemuan}>
+                                                    { updatePertemuan.onSubmit ? (
+                                                        <Loader2 className="animate-spin" />
                                                     ) : (
-                                                        <Copy width={15} />
-                                                    )
-                                                }
-                                            </Button>
-                                        </div>
-                                    </CardDescription>
-                                </CardHeader>
+                                                        <Check className="text-white" />
+                                                    )}
+                                                </Button>
+                                                <Button variant="ghost" className="hover:bg-red-300/70" onClick={() => setUpdatePertemuan(updatePertemuanInit)}>
+                                                    <X className="text-red-600" />
+                                                </Button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Button size="icon" variant="ghost" className="group hover:bg-red-500/85" onClick={() => handleOpenDeletePertemuan({ id: pertemuan.id, nama: pertemuan.nama })}>
+                                                    <Trash2 className="text-red-600 group-hover:text-white transition-colors" />
+                                                </Button>
+                                                <Button size="icon" variant="ghost" className="group hover:bg-blue-500/85" onClick={() => handleOpenUpdatePertemuan({ id: pertemuan.id, nama: pertemuan.nama })} disabled={!!updatePertemuan.id}>
+                                                    <Pencil className="text-blue-600 group-hover:text-white transition-colors" />
+                                                </Button>
+                                            </>
+                                        )}
+
+                                    </div>
+                                </div>
                                 <CardContent>
                                     <div className="flex items-center justify-between mb-2">
                                         <h3 className="font-semibold mb-1">
                                             Modul
                                         </h3>
                                         <Button size="sm" className="-mt-3" onClick={ () => handleOpenCreateModul(pertemuan.id) }>
-                                            <span className="hidden lg:block">Tambahkan</span>
+                                            <span className="hidden lg:block">Modul</span>
                                             <Plus/>
                                         </Button>
                                     </div>
@@ -673,8 +831,7 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
                                         )) : (
                                             <Card className="rounded-sm shadow-none border-muted-foreground/40">
                                                 <CardContent className="p-2.5 flex justify-between items-center gap-1">
-                                                    <p className="text-xs italic text-gray-500/90 font-medium">Belum ada
-                                                        data modul untuk pertemuan ini</p>
+                                                    <p className="text-xs italic text-gray-500/90 font-medium">Belum ada data modul untuk pertemuan ini</p>
                                                 </CardContent>
                                             </Card>
                                         ) }
@@ -692,6 +849,7 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
                     </div>
                 </CardContent>
 
+                {/*PERTEMUAN MODALS*/}
                 { useIsMobile() ? (
                     <Drawer open={openCreatePertemuan} onOpenChange={setOpenCreatePertemuan} dismissible={false}>
                         <DrawerContent onOpenAutoFocus={(e) => e.preventDefault()}>
@@ -783,6 +941,133 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
                         </AlertDialogContent>
                     </AlertDialog>
                 ) }
+
+                { useIsMobile() ? (
+                    <Drawer open={openDeletePertemuan} onOpenChange={setOpenDeletePertemuan} dismissible={false}>
+                        <DrawerContent onOpenAutoFocus={(e) => e.preventDefault()}>
+                            <DrawerHeader className="text-left">
+                                <DrawerTitle>
+                                    Hapus Pertemuan
+                                </DrawerTitle>
+                                <DrawerDescription>
+                                    <p className="text-red-600 font-bold">
+                                        Anda akan menghapus Pertemuan!
+                                    </p>
+                                    <p className="*:text-red-600">
+                                        Semua data Modul,Kuis,Nilai Praktikan yang terkait dengan <strong>"{ deletePertemuan.nama }"</strong> akan juga dihapus
+                                    </p>
+                                    <br/>
+                                    <p className="text-red-600">
+                                        Data yang terhapus tidak akan bisa dikembalikan! harap gunakan dengan hati-hati
+                                    </p>
+                                </DrawerDescription>
+                            </DrawerHeader>
+                            <div className="p-5">
+                                <form className={ cn("grid items-start gap-4") } onSubmit={ handleDeletePertemuanSubmit }>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="validation">Validasi aksi anda</Label>
+                                        <Input
+                                            type="text"
+                                            name="validation"
+                                            id="validation"
+                                            value={deletePertemuan.validation}
+                                            placeholder="JARKOM JAYA"
+                                            onChange={(event) =>
+                                                setDeletePertemuan((prevState) => ({
+                                                    ...prevState,
+                                                    validation: event.target.value,
+                                                }))
+                                            }
+                                            autoComplete="off"
+                                        />
+                                        <p>Ketik <strong>JARKOM JAYA</strong> untuk melanjutkan</p>
+                                    </div>
+                                    <Button type="submit" disabled={deletePertemuan.onSubmit || deletePertemuan.validation !== 'JARKOM JAYA'}>
+                                        { deletePertemuan.onSubmit
+                                            ? (
+                                                <>Memproses <Loader2 className="animate-spin" /></>
+                                            ) : (
+                                                <span>Simpan</span>
+                                            )
+                                        }
+                                    </Button>
+                                </form>
+                            </div>
+                            <DrawerFooter className="pt-2">
+                                <DrawerClose asChild>
+                                    <Button variant="outline" onClick={ () => setOpenDeletePertemuan(false) }>
+                                        Batal
+                                    </Button>
+                                </DrawerClose>
+                            </DrawerFooter>
+                        </DrawerContent>
+                    </Drawer>
+                ) : (
+                    <AlertDialog open={ openDeletePertemuan } onOpenChange={ setOpenDeletePertemuan }>
+                        <AlertDialogContent className="sm:max-w-[425px]" onOpenAutoFocus={ (e) => e.preventDefault() }>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                    Hapus Pertemuan
+                                </AlertDialogTitle>
+                                <AlertDialogDescription className="flex flex-col gap-0.5">
+                                    <span className="text-red-600 font-bold">
+                                        Anda akan menghapus Pertemuan!
+                                    </span>
+                                    <span className="*:text-red-600">
+                                        Semua data Modul,Kuis,Nilai Praktikan yang terkaitdengan <strong>"{ deletePertemuan.nama }"</strong> akan juga dihapus
+                                    </span>
+                                    <br/>
+                                    <span className="text-red-600">
+                                        Data yang terhapus tidak akan bisa dikembalikan! harap gunakan dengan hati-hati
+                                    </span>
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <form className={ cn("grid items-start gap-4") } onSubmit={ handleDeletePertemuanSubmit }>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="validation">Validasi aksi anda</Label>
+                                    <Input
+                                        type="text"
+                                        name="validation"
+                                        id="validation"
+                                        value={ deletePertemuan.validation }
+                                        placeholder="JARKOM JAYA"
+                                        onChange={ (event) =>
+                                            setDeletePertemuan((prevState) => ({
+                                                ...prevState,
+                                                validation: event.target.value,
+                                            }))
+                                        }
+                                        autoComplete="off"
+                                    />
+                                    <p>Ketik <strong>JARKOM JAYA</strong> untuk melanjutkan</p>
+                                </div>
+                                <Button type="submit" disabled={ deletePertemuan.onSubmit || deletePertemuan.validation !== 'JARKOM JAYA'}>
+                                    { deletePertemuan.onSubmit
+                                        ? (
+                                            <>Memproses <Loader2 className="animate-spin" /></>
+                                        ) : (
+                                            <span>Simpan</span>
+                                        )
+                                    }
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    className="hover:bg-red-300/70"
+                                    onClick={() => {
+                                        setDeletePertemuan(deletePertemuanInit);
+                                        setOpenDeletePertemuan(false);
+                                    }}
+                                >
+                                    Batal
+                                </Button>
+                            </form>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                ) }
+                {/*END OF PERTEMUAN MODALS*/}
+
+                {/*START OF MODUL MODALS*/}
                 { useIsMobile() ? (
                     <Drawer open={openCreateModul} onOpenChange={setOpenCreateModul} dismissible={false}>
                         <DrawerContent onOpenAutoFocus={(e) => e.preventDefault()}>
@@ -905,7 +1190,6 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
                     </AlertDialog>
                 ) }
 
-                {/*--DELETE-FORM--*/}
                 { useIsMobile() ? (
                     <Drawer open={openDeleteModul} onOpenChange={setOpenDeleteModul} dismissible={false}>
                         <DrawerContent onOpenAutoFocus={(e) => e.preventDefault()}>
@@ -1029,7 +1313,7 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
                         </AlertDialogContent>
                     </AlertDialog>
                 ) }
-                {/*---DELETE-FORM---*/}
+                {/*END OF MODUL MODALS*/}
             </AdminLayout>
         </>
     );
