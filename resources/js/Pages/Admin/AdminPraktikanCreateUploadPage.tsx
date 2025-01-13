@@ -53,7 +53,7 @@ export default function AdminPraktikanCreateUploadPage() {
         setOnSubmitUploadContents(true);
         setSubmitNPMErrors([]);
 
-        axios.post(route('api.check-npm'), {
+        axios.post(route('api.check-npm-post'), {
             npm: uploadContents.map((content) => content.npm)
         })
             .then(() => {
@@ -334,7 +334,7 @@ export default function AdminPraktikanCreateUploadPage() {
                         <p className="max-w-96 truncate">
                             Tunggu bentar yah.. emang agak lama hehe
                         </p>
-                        <Loader className="animate-spin w-min h-4 text-gray-900 ml-0 duration-[3000ms]" />
+                        <Loader className="animate-spin w-min h-4 text-gray-900 ml-0" />
                     </div>
                     <Button
                         onClick={ handleSubmitUploadContents }

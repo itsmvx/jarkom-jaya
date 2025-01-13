@@ -12,7 +12,7 @@ Route::get('/user', function (Request $request) {
 Route::name('api.')->group(function () {
     Route::get('soal', [SoalController::class, 'apiSoal'])->name('soal');
 
-    Route::get('check-npm', [PraktikanController::class, 'checkNpmGET'])->name('check-npm');
-    Route::post('check-npm', [PraktikanController::class, 'checkNpmPOST'])->name('check-npm');
+    Route::get('check-npm', [PraktikanController::class, 'checkNpmGET'])->name('check-npm-get');
+    Route::post('check-npm', [PraktikanController::class, 'checkNpmPOST'])->name('check-npm-post');
     Route::get('/praktikans', [PraktikanController::class, 'getPraktikans'])->name('praktikans');
 });
