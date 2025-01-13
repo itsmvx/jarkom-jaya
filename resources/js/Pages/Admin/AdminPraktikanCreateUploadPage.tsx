@@ -321,8 +321,7 @@ export default function AdminPraktikanCreateUploadPage() {
                         <div
                             className="w-full mx-auto flex gap-1 items-center justify-center text-center text-sm font-medium">
                             Tidak memiliki file?
-                            <a href={ route('assets', 'template-upload-soal.xlsx') }
-                               className="hover:text-blue-600 flex items-center gap-0.5" target="_blank">
+                            <a href={ route('assets', 'template-upload-praktikum-praktikan.xlsx') } className="hover:text-blue-600 flex items-center gap-0.5" target="_blank">
                                 Unduh template<Download width={ 18 }/>
                             </a>
                         </div>
