@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
 
             LabelSeeder::class,
 
-            PraktikanSeeder::class,
+//            PraktikanSeeder::class,
         ]);
     }
 }

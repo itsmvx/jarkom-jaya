@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Praktikan;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
@@ -57,6 +59,95 @@ class PraktikanController extends Controller
                     ? $exception->getMessage()
                     : 'Server gagal memproses permintaan',
             ], 500);
+        }
+    }
+    public function storeMass(Request $request)
+    {
+        $validated = $request->validate([
+            'praktikans' => 'required|array',
+            'praktikans.*.nama' => 'required|string',
+            'praktikans.*.npm' => 'required|string',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $now = Carbon::now('Asia/Jakarta');
+            $praktikansData = array_map(function ($praktikan) use ($now) {
+                return [
+                    'id' => Str::uuid(),
+                    'nama' => $praktikan['nama'],
+                    'npm' => $praktikan['npm'],
+                    'password' => Hash::make($praktikan['npm'], ['rounds' => 12]),
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }, $validated['praktikans']);
+
+            Praktikan::upsert(
+                $praktikansData,
+                ['npm'],
+                ['nama', 'password', 'updated_at']
+            );
+
+            DB::commit();
+
+            return Response::json([
+                'message' => 'Semua Praktikan berhasil diproses!',
+            ], 201);
+        } catch (QueryException $exception) {
+            DB::rollBack();
+            return Response::json([
+                'message' => config('app.debug')
+                    ? $exception->getMessage()
+                    : 'Server gagal memproses permintaan',
+            ], 500);
+        }
+    }
+
+    public function checkNpmGET(Request $request)
+    {
+        $validated = $request->validate([
+            'npm' => 'required|string',
+        ]);
+
+        try {
+            $isNPMExists = Praktikan::where('npm', $validated['npm'])->exists();
+
+            return Response::json([
+                'message' => $isNPMExists ? 'NPM sudah terdaftar!' : 'NPM bisa digunakan!',
+            ], $isNPMExists ? 409 : 200);
+        } catch (QueryException $exception) {
+            return Response::json([
+                'message' => config('app.debug')
+                    ? $exception->getMessage()
+                    : 'Server gagal memproses permintaan',
+            ]);
+        }
+    }
+    public function checkNpmPOST(Request $request)
+    {
+        $validated = $request->validate([
+            'npm' => 'required|array',
+            'npm.*' => 'required|string',
+        ]);
+
+        try {
+            $npmExists = Praktikan::select('npm')
+                ->whereIn('npm', $validated['npm'])
+                ->get()
+                ->pluck('npm')
+                ->toArray();
+
+            return Response::json([
+                'message' => empty($npmExists) ? 'Semua NPM dapat digunakan' : 'Ada sebagian data dengan NPM yang sudah terdaftar, cek errors untuk informasi lengkapnya',
+                'errors' => $npmExists,
+            ], empty($npmExists) ? 200 : 409);
+        } catch (QueryException $exception) {
+            return Response::json([
+                'message' => config('app.debug')
+                    ? $exception->getMessage()
+                    : 'Server gagal memproses permintaan',
+            ]);
         }
     }
 
@@ -127,6 +218,49 @@ class PraktikanController extends Controller
                     ? $exception->getMessage()
                     : 'Server gagal memproses permintaan',
             ], 500);
+        }
+    }
+
+    public function getPraktikans(Request $request)
+    {
+        $request->validate([
+            'search' => 'nullable|string|min:1',
+            'npm' => 'required|array',
+            'npm.*' => 'required|string',
+            'columns' => 'nullable|array',
+            'columns.*' => 'string|in:id,nama,npm,username,avatar',
+        ]);
+
+        $columnsParam = $request->get('columns');
+        $searchParam = $request->get('search');
+        $npmParam = $request->get('npm');
+
+        try {
+            $query = Praktikan::select($columnsParam ?? ['id','nama','npm']);
+
+            if ($searchParam) {
+                $query->where('nama', 'like', '%' . $searchParam . '%');
+                $query->orWhere('npm', 'like', '%' . $searchParam . '%');
+            }
+
+            if ($npmParam) {
+                $query->whereIn('npm', $npmParam);
+            }
+
+            $praktikans = $query->get();
+
+            return Response::json([
+                'message' => empty($praktikans)
+                    ? 'Server berhasil memproses permintaan, namun tidak ada data yang sesuai dengan pencarian diminta'
+                    : 'Berhasil mengambil data!',
+                'data' => $praktikans,
+            ]);
+        } catch (QueryException $exception) {
+            return Response::json([
+                'message' => config('app.debug')
+                    ? $exception->getMessage()
+                    : 'Server gagal memproses permintaan',
+            ]);
         }
     }
 }

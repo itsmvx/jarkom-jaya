@@ -94,18 +94,6 @@ const data: {
                     url: route('admin.kuis.index'),
                     route: 'admin.kuis.index'
                 },
-
-            ],
-        },
-        {
-            title: "Nilai Praktikum",
-            url: "#",
-            items: [
-                {
-                    title: "Manajemen Nilai",
-                    url: "#",
-                    route: ''
-                },
             ],
         },
     ],

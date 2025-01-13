@@ -165,6 +165,34 @@ class AdminPagesController extends Controller
             abort(500);
         }
     }
+    public function praktikumPraktikanIndexPage(Request $request)
+    {
+        $idParam = $request->query->get('q');
+        if (!$idParam) {
+            abort(404);
+        }
+
+        try {
+            $praktikum = Praktikum::with('praktikan:id,nama,npm')
+                ->find($idParam);
+
+            if (!$praktikum) {
+                abort(404);
+            }
+
+            return Inertia::render('Admin/AdminPraktikumPraktikanIndexPage', [
+                'praktikum' => fn() => $praktikum->only(['id', 'nama', 'praktikan'])
+            ]);
+        } catch (QueryException $exception) {
+            abort(500);
+        }
+
+
+    }
+    public function praktikumPraktikanCreatePage()
+    {
+
+    }
 
     public function praktikanIndexPage(Request $request)
     {
@@ -193,6 +221,10 @@ class AdminPagesController extends Controller
     public function praktikanCreatePage()
     {
         return Inertia::render('Admin/AdminPraktikanCreatePage');
+    }
+    public function praktikanCreateUploadPage()
+    {
+        return Inertia::render('Admin/AdminPraktikanCreateUploadPage');
     }
     public function praktikanUpdatePage(Request $request)
     {

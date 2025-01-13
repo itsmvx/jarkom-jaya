@@ -129,8 +129,7 @@ export default function AdminSoalCreatePage({ labels }: {
                 router.visit(route('admin.kuis.soal.index'));
             })
             .catch((err: unknown) => {
-                const errMsg: string =
-                    err instanceof AxiosError && err.response?.data?.message
+                const errMsg: string = err instanceof AxiosError && err.response?.data?.message
                         ? err.response.data.message
                         : "Error tidak diketahui terjadi!";
                 setCreateForm((prevState) => ({ ...prevState, onSubmit: false }));

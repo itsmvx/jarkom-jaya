@@ -25,7 +25,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, MoreHorizontal, Pencil, BookMarked, Trash2, Plus, Loader2 } from "lucide-react"
+import { ArrowUpDown, MoreHorizontal, Pencil, BookMarked, Trash2, Plus, Loader2, Upload } from "lucide-react"
 import { FormEvent, useState } from "react";
 import { ViewPerPage } from "@/components/view-per-page";
 import { TableSearchForm } from "@/components/table-search-form";
@@ -52,7 +52,7 @@ type Praktikan = {
     id: string;
     nama: string;
     npm: string;
-    username: string;
+    username: string | null;
     avatar: string | null;
 };
 export default function AdminPraktikanIndexPage({ pagination }: {
@@ -219,7 +219,7 @@ export default function AdminPraktikanIndexPage({ pagination }: {
 
     return (
         <AdminLayout>
-            <Head title="Admin - Manajemen Praktikan" />
+            <Head title="Admin - Manajemen Praktikan"/>
             <CardTitle>
                 Manajemen Praktikan
             </CardTitle>
@@ -227,9 +227,14 @@ export default function AdminPraktikanIndexPage({ pagination }: {
                 Data Praktikan
             </CardDescription>
             <div className="flex flex-col lg:flex-row gap-2 items-start justify-between">
-                <Button className="mt-4" onClick={ () => router.visit(route('admin.praktikan.create')) }>
-                    Buat <Plus />
-                </Button>
+                <div className="space-x-2">
+                    <Button className="mt-4" onClick={ () => router.visit(route('admin.praktikan.create')) }>
+                        Buat <Plus/>
+                    </Button>
+                    <Button className="mt-4" onClick={ () => router.visit(route('admin.praktikan.create-upload')) }>
+                        Upload <Upload/>
+                    </Button>
+                </div>
                 <TableSearchForm table={ table }/>
             </div>
             <div className="mx-auto sm:mx-0 rounded-md border overflow-x-auto w-[82vw] sm:w-full">
@@ -283,7 +288,7 @@ export default function AdminPraktikanIndexPage({ pagination }: {
                 </Table>
             </div>
             <div className="flex items-center justify-end space-x-2 py-4">
-                <ViewPerPage className="flex-1" />
+                <ViewPerPage className="flex-1"/>
                 <div className="space-x-2">
                     <Button
                         variant="outline"
@@ -317,7 +322,8 @@ export default function AdminPraktikanIndexPage({ pagination }: {
                                     Anda akan menghapus Praktikan!
                                 </p>
                                 <p className="*:text-red-600">
-                                    Semua data Praktikan <strong>{ deleteForm.nama }</strong> seperti nilai kuis dan sebagainya akan juga terhapus
+                                    Semua data Praktikan <strong>{ deleteForm.nama }</strong> seperti nilai kuis dan
+                                    sebagainya akan juga terhapus
                                 </p>
                                 <br/>
                                 <p className="text-red-600">
@@ -378,7 +384,8 @@ export default function AdminPraktikanIndexPage({ pagination }: {
                                     Anda akan menghapus Praktikan!
                                 </p>
                                 <p className="*:text-red-600">
-                                    Semua data Praktikan <strong>{ deleteForm.nama }</strong> seperti nilai kuis dan sebagainya akan juga terhapus
+                                    Semua data Praktikan <strong>{ deleteForm.nama }</strong> seperti nilai kuis dan
+                                    sebagainya akan juga terhapus
                                 </p>
                                 <br/>
                                 <p className="text-red-600">

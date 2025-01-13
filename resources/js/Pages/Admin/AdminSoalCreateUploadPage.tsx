@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/layouts/AdminLayout";
-import { ExcelUploader } from "@/components/excel-uploader";
+import { FileUploader } from "@/components/file-uploader";
 import { Head, router } from "@inertiajs/react";
 import { CardDescription, CardTitle, CardContent } from "@/components/ui/card";
 import { QuillEditor } from "@/components/quill-editor";
@@ -383,7 +383,7 @@ export default function AdminSoalCreateUploadPage({ labels }: {
                 </div>
             ) : (
                 <>
-                    <ExcelUploader
+                    <FileUploader
                         className="mt-4"
                         onFileUpload={ (file) => handleSetFileUpload(file) }
                     />

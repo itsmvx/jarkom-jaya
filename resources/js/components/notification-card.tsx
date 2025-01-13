@@ -27,7 +27,6 @@ export function NotificationCard({ children, className, onClose }: NotificationC
                 </div>
                 <Button
                     variant="ghost"
-                    size="icon"
                     onClick={handleSetInvisible}
                     aria-label="Close notification"
                     className="self-start"

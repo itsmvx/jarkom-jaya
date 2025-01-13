@@ -11,14 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('praktikan', function (Blueprint $table) {
+        Schema::create('nilai', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('nama');
-            $table->string('npm')->unique();
-            $table->enum('jenis_kelamin', ['Laki-Laki', 'Perempuan'])->nullable();
-            $table->string('username')->unique()->nullable();
-            $table->string('password');
-            $table->string('avatar')->nullable();
+            $table->foreignUuid('praktikan_id')->constrained('praktikan')->cascadeOnDelete();
+            $table->enum('jenis', ['pre-test', 'B', 'C', 'D', 'E', 'F']);
             $table->timestamps();
         });
     }
@@ -28,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('praktikan');
+        Schema::dropIfExists('nilai');
     }
 };

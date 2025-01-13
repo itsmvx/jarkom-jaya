@@ -152,7 +152,7 @@ export default function KuisTest({ soals }: {
                     </header>
                     <Separator className="my-3 bg-muted-foreground/70 h-0.5"/>
                     <div className="flex-1 py-1.5 px-3.5 overflow-y-auto">
-                        <Card className="my-card !border-[1.5px] w-full h-80 min-h-72 py-2 overflow-y-auto">
+                        <Card className="my-card !border-[1.5px] w-full sm:h-80 lg:h-[60vh] 2xl:h-[70vh] min-h-72 py-2 overflow-y-auto transition-width ease-in-out duration-200">
                             <RenderQuillDelta
                                 delta={ DataSoal[quizState.currentIndex].pertanyaan }
                                 className="!items-start justify-center px-5 pt-1 pb-3"

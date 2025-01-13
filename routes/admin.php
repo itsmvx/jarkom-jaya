@@ -1,0 +1,50 @@
+<?php
+
+use App\Http\Controllers\AdminPagesController;
+use Illuminate\Support\Facades\Route;
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminPagesController::class, 'dashboardPage'])->name('dashboard');
+
+    Route::prefix('aslab')->name('aslab.')->group(function () {
+        Route::get('/', [AdminPagesController::class, 'aslabIndexPage'])->name('index');
+        Route::get('/create', [AdminPagesController::class, 'aslabCreatePage'])->name('create');
+        Route::get('/update', [AdminPagesController::class, 'aslabUpdatePage'])->name('update');
+    });
+    Route::prefix('praktikan')->name('praktikan.')->group(function () {
+        Route::get('/', [AdminPagesController::class, 'praktikanIndexPage'])->name('index');
+        Route::get('/create', [AdminPagesController::class, 'praktikanCreatePage'])->name('create');
+        Route::get('/create-upload', [AdminPagesController::class, 'praktikanCreateUploadPage'])->name('create-upload');
+        Route::get('/update', [AdminPagesController::class, 'praktikanUpdatePage'])->name('update');
+    });
+    Route::prefix('praktikum')->name('praktikum.')->group(function () {
+        Route::get('/', [AdminPagesController::class, 'praktikumIndexPage'])->name('index');
+        Route::get('/create', [AdminPagesController::class, 'praktikumCreatePage'])->name('create');
+        Route::get('/update', [AdminPagesController::class, 'praktikumUpdatePage'])->name('update');
+        Route::prefix('praktikan')->name('praktikan.')->group(function () {
+            Route::get('/', [AdminPagesController::class, 'praktikumPraktikanIndexPage'])->name('index');
+        });
+    });
+    Route::prefix('jenis-praktikum')->name('jenis-praktikum.')->group(function () {
+        Route::get('/', [AdminPagesController::class, 'jenisPraktikumIndexPage'])->name('index');
+    });
+    Route::prefix('periode-praktikum')->name('periode-praktikum.')->group(function () {
+        Route::get('/', [AdminPagesController::class, 'periodePraktikumIndexPage'])->name('index');
+    });
+    Route::prefix('kuis')->name('kuis.')->group(function () {
+        Route::prefix('label')->name('label.')->group(function () {
+            Route::get('/', [AdminPagesController::class, 'labelIndexPage'])->name('index');
+        });
+        Route::prefix('soal')->name('soal.')->group(function () {
+            Route::get('/', [AdminPagesController::class, 'soalIndexPage'])->name('index');
+            Route::get('/create', [AdminPagesController::class, 'soalCreatePage'])->name('create');
+            Route::get('/create-upload', [AdminPagesController::class, 'soalCreateUploadPage'])->name('create-upload');
+            Route::get('/update', [AdminPagesController::class, 'soalUpdatePage'])->name('update');
+        });
+
+        Route::get('/', [AdminPagesController::class, 'kuisIndexPage'])->name('index');
+        Route::get('/create', [AdminPagesController::class, 'kuisCreatePage'])->name('create');
+        Route::get('/update', [AdminPagesController::class, 'kuisUpdatePage'])->name('update');
+        Route::get('/view', [AdminPagesController::class, 'kuisViewPage'])->name('view');
+    });
+});

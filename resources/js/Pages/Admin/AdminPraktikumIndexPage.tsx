@@ -24,7 +24,7 @@ import {
     getSortedRowModel,
     useReactTable, flexRender,
 } from "@tanstack/react-table"
-import { ArrowUpDown, Check, MoreHorizontal, Pencil, Loader2, Trash2, Plus, X } from "lucide-react"
+import { ArrowUpDown, Check, MoreHorizontal, Pencil, Loader2, Trash2, Plus, X, Users2 } from "lucide-react"
 import { FormEvent, useState } from "react";
 import { ViewPerPage } from "@/components/view-per-page";
 import { TableSearchForm } from "@/components/table-search-form";
@@ -240,6 +240,9 @@ export default function AdminPraktikumIndexPage({ pagination }: {
                             <DropdownMenuLabel>Aksi</DropdownMenuLabel>
                             <DropdownMenuItem onClick={ () => router.visit(route('admin.praktikum.update', { q: originalRow.id })) }>
                                 <Pencil /> Ubah data
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={ () => router.visit(route('admin.praktikum.praktikan.index', { q: originalRow.id })) }>
+                                <Users2 /> Data Praktikan
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={ () => {
                                 setOpenDeleteForm(true);

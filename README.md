@@ -133,6 +133,153 @@ Content-Type: application/json
 - Gunakan parameter dengan benar untuk menghindari kesalahan validasi.
 - Pastikan nilai `limit` tidak melebihi batas maksimal (250).
 
+# API Documentation
+
+## Check NPM (GET)
+
+### Endpoint
+**GET** `/api/check-npm`
+
+### Request Parameters
+| Parameter | Type   | Required | Description             |
+|-----------|--------|----------|-------------------------|
+| `npm`     | string | Yes      | NPM to be checked.      |
+
+### Response
+
+#### Success Response (200)
+```json
+{
+    "message": "NPM bisa digunakan!"
+}
+```
+
+#### Conflict Response (409)
+```json
+{
+    "message": "NPM sudah terdaftar!"
+}
+```
+
+#### Error Response (500)
+```json
+{
+    "message": "Server gagal memproses permintaan"
+}
+```
+
+---
+
+## Check NPM (POST)
+
+### Endpoint
+**POST** `/api/check-npm`
+
+### Request Body
+| Parameter   | Type    | Required | Description                       |
+|-------------|---------|----------|-----------------------------------|
+| `npm`       | array   | Yes      | Array of NPMs to be checked.      |
+| `npm.*`     | string  | Yes      | Each item in the NPM array.       |
+
+#### Example Request
+```json
+{
+    "npm": ["123456789", "987654321"]
+}
+```
+
+### Response
+
+#### Success Response (200)
+```json
+{
+    "message": "Semua NPM dapat digunakan",
+    "errors": []
+}
+```
+
+#### Conflict Response (409)
+```json
+{
+    "message": "Ada sebagian data dengan NPM yang sudah terdaftar, cek errors untuk informasi lengkapnya",
+    "errors": ["123456789"]
+}
+```
+
+#### Error Response (500)
+```json
+{
+    "message": "Server gagal memproses permintaan"
+}
+```
+
+---
+
+### Catatan
+- Pastikan parameter yang dikirimkan sesuai dengan format yang diminta untuk menghindari kesalahan validasi.
+- Gunakan endpoint ini hanya untuk memeriksa ketersediaan NPM, tidak untuk tujuan lain.
+- Jika terjadi kesalahan server, coba ulangi beberapa saat lagi atau hubungi tim teknis.
+
+---
+
+## Get Praktikans
+
+### Endpoint
+**POST** `/api/get-praktikans`
+
+### Request Body
+| Parameter   | Type    | Required | Description                                                           |
+|-------------|---------|----------|-----------------------------------------------------------------------|
+| `search`    | string  | No       | Search query to filter praktikans by `nama` or `npm` (optional).       |
+| `npm`       | array   | Yes      | Array of NPMs to filter praktikans.                                   |
+| `npm.*`     | string  | Yes      | Each item in the NPM array.                                           |
+| `columns`   | array   | No       | Array of columns to select (`id`, `nama`, `npm`, `username`, `avatar`).|
+| `columns.*` | string  | No       | Valid column name (`id`, `nama`, `npm`, `username`, `avatar`).        |
+
+#### Example Request
+```json
+{
+    "search": "John",
+    "npm": ["123456789", "987654321"],
+    "columns": ["id", "nama", "npm"]
+}
+```
+
+### Response
+
+#### Success Response (200)
+If data is found:
+```json
+{
+    "message": "Berhasil mengambil data!",
+    "data": [
+        {
+            "id": 1,
+            "nama": "John Doe",
+            "npm": "123456789"
+        }
+    ]
+}
+```
+
+If no data matches the query:
+```json
+{
+    "message": "Server berhasil memproses permintaan, namun tidak ada data yang sesuai dengan pencarian diminta",
+    "data": []
+}
+```
+
+#### Error Response (500)
+```json
+{
+    "message": "Server gagal memproses permintaan"
+}
+```
+
+---
+
+
 
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 

@@ -10,6 +10,7 @@ use App\Http\Controllers\PeriodePraktikumController;
 use App\Http\Controllers\PertemuanController;
 use App\Http\Controllers\PraktikanController;
 use App\Http\Controllers\PraktikumController;
+use App\Http\Controllers\PraktikumPraktikanController;
 use App\Http\Controllers\SoalController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Response;
@@ -49,46 +50,6 @@ Route::get('/hall-of-fames', function () {
     return Inertia::render('HallOfFamesPage');
 })->name('hall-of-fames');
 
-Route::prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', [AdminPagesController::class, 'dashboardPage'])->name('dashboard');
-    Route::prefix('aslab')->name('aslab.')->group(function () {
-        Route::get('/', [AdminPagesController::class, 'aslabIndexPage'])->name('index');
-        Route::get('/create', [AdminPagesController::class, 'aslabCreatePage'])->name('create');
-        Route::get('/update', [AdminPagesController::class, 'aslabUpdatePage'])->name('update');
-    });
-    Route::prefix('praktikan')->name('praktikan.')->group(function () {
-        Route::get('/', [AdminPagesController::class, 'praktikanIndexPage'])->name('index');
-        Route::get('/create', [AdminPagesController::class, 'praktikanCreatePage'])->name('create');
-        Route::get('/update', [AdminPagesController::class, 'praktikanUpdatePage'])->name('update');
-    });
-    Route::prefix('praktikum')->name('praktikum.')->group(function () {
-        Route::get('/', [AdminPagesController::class, 'praktikumIndexPage'])->name('index');
-        Route::get('/create', [AdminPagesController::class, 'praktikumCreatePage'])->name('create');
-        Route::get('/update', [AdminPagesController::class, 'praktikumUpdatePage'])->name('update');
-    });
-    Route::prefix('jenis-praktikum')->name('jenis-praktikum.')->group(function () {
-        Route::get('/', [AdminPagesController::class, 'jenisPraktikumIndexPage'])->name('index');
-    });
-    Route::prefix('periode-praktikum')->name('periode-praktikum.')->group(function () {
-        Route::get('/', [AdminPagesController::class, 'periodePraktikumIndexPage'])->name('index');
-    });
-    Route::prefix('kuis')->name('kuis.')->group(function () {
-        Route::prefix('label')->name('label.')->group(function () {
-            Route::get('/', [AdminPagesController::class, 'labelIndexPage'])->name('index');
-        });
-        Route::prefix('soal')->name('soal.')->group(function () {
-            Route::get('/', [AdminPagesController::class, 'soalIndexPage'])->name('index');
-            Route::get('/create', [AdminPagesController::class, 'soalCreatePage'])->name('create');
-            Route::get('/create-upload', [AdminPagesController::class, 'soalCreateUploadPage'])->name('create-upload');
-            Route::get('/update', [AdminPagesController::class, 'soalUpdatePage'])->name('update');
-        });
-
-        Route::get('/', [AdminPagesController::class, 'kuisIndexPage'])->name('index');
-        Route::get('/create', [AdminPagesController::class, 'kuisCreatePage'])->name('create');
-        Route::get('/update', [AdminPagesController::class, 'kuisUpdatePage'])->name('update');
-        Route::get('/view', [AdminPagesController::class, 'kuisViewPage'])->name('view');
-    });
-});
 Route::get('/login-admin', [AdminPagesController::class, 'loginAdminPage'])->name('admin.login');
 Route::get('/praktikan', function () {
     return Inertia::render('AdminPraktikanIndexPage');
@@ -127,8 +88,14 @@ Route::prefix('aslab')->name('aslab.')->group(function () {
 });
 Route::prefix('praktikan')->name('praktikan.')->group(function () {
     Route::post('/create', [PraktikanController::class, 'store'])->name('create');
+    Route::post('/create-mass', [PraktikanController::class, 'storeMass'])->name('create-mass');
     Route::post('/update', [PraktikanController::class, 'update'])->name('update');
     Route::post('/delete', [PraktikanController::class, 'destroy'])->name('delete');
+});
+Route::prefix('praktikum-praktikan')->name('praktikum-praktikan.')->group(function () {
+    Route::post('/create', [PraktikumPraktikanController::class, 'store'])->name('create');
+    Route::post('/update', [PraktikumPraktikanController::class, 'update'])->name('update');
+    Route::post('/delete', [PraktikumPraktikanController::class, 'destroy'])->name('delete');
 });
 Route::prefix('label')->name('label.')->group(function () {
     Route::post('/create', [LabelController::class, 'store'])->name('create');
@@ -152,3 +119,6 @@ Route::get('/kuis', function () {
         'soals' => \App\Models\Soal::select('id','pertanyaan','pilihan_jawaban')->limit(50)->get(),
     ]);
 });
+
+
+require __DIR__ . '/admin.php';

@@ -130,7 +130,6 @@ export default function AdminSoalIndexPage({ pagination }: {
                                 </AccordionContent>
                             </AccordionItem>
                         </Accordion>
-
                     </>
                 )
             },
