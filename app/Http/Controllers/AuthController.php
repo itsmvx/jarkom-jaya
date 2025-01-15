@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Praktikan;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -101,5 +103,39 @@ class AuthController extends Controller
                 'message' => 'Username/NIP atau password salah'
             ], 401);
         }
+    }
+
+    public function authPraktikan(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'username' => 'required|string|min:3',
+            'password' => 'required|string|min:6'
+        ]);
+
+        $praktikan = Praktikan::where('npm', $validated['username'])
+            ->orWhere('username', $validated['username'])
+            ->first();
+
+        if ($praktikan && Hash::check($validated['password'], $praktikan->password)) {
+            Auth::guard('praktikan')->login($praktikan);
+
+            return Response::json([
+                'message' => 'Login berhasil',
+            ], 200);
+        } else {
+            return Response::json([
+                'message' => 'Username/NPM atau password salah'
+            ], 401);
+        }
+    }
+    public function logout(Request $request): JsonResponse
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return Response::json([
+            'message' => 'Logout berhasil!',
+        ]);
     }
 }

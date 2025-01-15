@@ -30,15 +30,6 @@ import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import axios, { AxiosError } from "axios";
-import { useIsMobile } from "@/hooks/use-mobile";
-import {
-    Drawer, DrawerClose,
-    DrawerContent,
-    DrawerDescription,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerTitle
-} from "@/components/ui/drawer";
 import { z } from "zod";
 
 type Praktikan = {
@@ -618,129 +609,67 @@ export default function AdminPraktikumPraktikanIndexPage({ praktikum }: {
                 </AlertDialogContent>
             </AlertDialog>
 
-            { useIsMobile() ? (
-                <Drawer open={openDeletePraktikan} onOpenChange={setOpenDeletePraktikan} dismissible={false}>
-                    <DrawerContent onOpenAutoFocus={(e) => e.preventDefault()}>
-                        <DrawerHeader className="text-left">
-                            <DrawerTitle>
-                                Hapus Praktikan dari Praktikum?
-                            </DrawerTitle>
-                            <DrawerDescription>
-                                <p className="text-red-600 font-bold">
-                                    Anda akan menghapus Praktikan dari Praktikum { praktikum.nama }
-                                </p>
-                                <p className="*:text-red-600">
-                                    Semua data Nilai Praktikan <strong>{ deletePraktikan.nama }</strong> yang terkait dengan <strong>{ praktikum.nama }</strong> akan juga dihapus
-                                </p>
-                                <br/>
-                                <p className="text-red-600">
-                                    Data yang terhapus tidak akan bisa dikembalikan! harap gunakan dengan hati-hati
-                                </p>
-                            </DrawerDescription>
-                        </DrawerHeader>
-                        <div className="p-5">
-                            <form className={ cn("grid items-start gap-4") } onSubmit={ handleDeletePraktikanSubmit }>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="validation">Validasi aksi anda</Label>
-                                    <Input
-                                        type="text"
-                                        name="validation"
-                                        id="validation"
-                                        value={deletePraktikan.validation}
-                                        placeholder="JARKOM JAYA"
-                                        onChange={(event) =>
-                                            setDeletePraktikan((prevState) => ({
-                                                ...prevState,
-                                                validation: event.target.value,
-                                            }))
-                                        }
-                                        autoComplete="off"
-                                    />
-                                    <p>Ketik <strong>JARKOM JAYA</strong> untuk melanjutkan</p>
-                                </div>
-                                <Button type="submit" disabled={deletePraktikan.onSubmit || deletePraktikan.validation !== 'JARKOM JAYA'}>
-                                    { deletePraktikan.onSubmit
-                                        ? (
-                                            <>Memproses <Loader2 className="animate-spin" /></>
-                                        ) : (
-                                            <span>Simpan</span>
-                                        )
-                                    }
-                                </Button>
-                            </form>
-                        </div>
-                        <DrawerFooter className="pt-2">
-                            <DrawerClose asChild>
-                                <Button variant="outline" onClick={ () => setOpenDeletePraktikan(false) }>
-                                    Batal
-                                </Button>
-                            </DrawerClose>
-                        </DrawerFooter>
-                    </DrawerContent>
-                </Drawer>
-            ) : (
-                <AlertDialog open={ openDeletePraktikan } onOpenChange={ setOpenDeletePraktikan }>
-                    <AlertDialogContent className="sm:max-w-[425px]" onOpenAutoFocus={ (e) => e.preventDefault() }>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>
-                                Hapus Praktikan dari Praktikum?
-                            </AlertDialogTitle>
-                            <AlertDialogDescription className="flex flex-col gap-0.5">
-                                <span className="text-red-600 font-bold">
-                                    Anda akan menghapus Praktikan dari Praktikum { praktikum.nama }
-                                </span>
-                                <span className="*:text-red-600">
-                                    Semua data Nilai Praktikan <strong>{ deletePraktikan.nama }</strong> yang terkait dengan <strong>{ praktikum.nama }</strong> akan juga dihapus
-                                </span>
-                                <br/>
-                                <span className="text-red-600">
-                                    Data yang terhapus tidak akan bisa dikembalikan! harap gunakan dengan hati-hati
-                                </span>
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <form className={ cn("grid items-start gap-4") } onSubmit={ handleDeletePraktikanSubmit }>
-                            <div className="grid gap-2">
-                                <Label htmlFor="validation">Validasi aksi anda</Label>
-                                <Input
-                                    type="text"
-                                    name="validation"
-                                    id="validation"
-                                    value={ deletePraktikan.validation }
-                                    placeholder="JARKOM JAYA"
-                                    onChange={ (event) =>
-                                        setDeletePraktikan((prevState) => ({
-                                            ...prevState,
-                                            validation: event.target.value,
-                                        }))
-                                    }
-                                    autoComplete="off"
-                                />
-                                <p>Ketik <strong>JARKOM JAYA</strong> untuk melanjutkan</p>
-                            </div>
-                            <Button type="submit" disabled={ deletePraktikan.onSubmit || deletePraktikan.validation !== 'JARKOM JAYA'}>
-                                { deletePraktikan.onSubmit
-                                    ? (
-                                        <>Memproses <Loader2 className="animate-spin" /></>
-                                    ) : (
-                                        <span>Simpan</span>
-                                    )
+            <AlertDialog open={ openDeletePraktikan } onOpenChange={ setOpenDeletePraktikan }>
+                <AlertDialogContent className="max-w-[90%] sm:max-w-[425px] rounded" onOpenAutoFocus={ (e) => e.preventDefault() }>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            Hapus Praktikan dari Praktikum?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="flex flex-col gap-0.5">
+                            <span className="text-red-600 font-bold">
+                                Anda akan menghapus Praktikan dari Praktikum { praktikum.nama }
+                            </span>
+                            <span className="*:text-red-600">
+                                Semua data Nilai Praktikan <strong>{ deletePraktikan.nama }</strong> yang terkait dengan <strong>{ praktikum.nama }</strong> akan juga dihapus
+                            </span>
+                            <br/>
+                            <span className="text-red-600">
+                                Data yang terhapus tidak akan bisa dikembalikan! harap gunakan dengan hati-hati
+                            </span>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <form className={ cn("grid items-start gap-4") } onSubmit={ handleDeletePraktikanSubmit }>
+                        <div className="grid gap-2">
+                            <Label htmlFor="validation">Validasi aksi anda</Label>
+                            <Input
+                                type="text"
+                                name="validation"
+                                id="validation"
+                                value={ deletePraktikan.validation }
+                                placeholder="JARKOM JAYA"
+                                onChange={ (event) =>
+                                    setDeletePraktikan((prevState) => ({
+                                        ...prevState,
+                                        validation: event.target.value,
+                                    }))
                                 }
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                className="hover:bg-red-300/70"
-                                onClick={() => {
-                                    setDeletePraktikan(deletePraktikanInit);
-                                    setOpenDeletePraktikan(false);
-                                }}
-                            >
-                                Batal
-                            </Button>
-                        </form>
-                    </AlertDialogContent>
-                </AlertDialog>
-            ) }
+                                autoComplete="off"
+                            />
+                            <p>Ketik <strong>JARKOM JAYA</strong> untuk melanjutkan</p>
+                        </div>
+                        <Button type="submit" disabled={ deletePraktikan.onSubmit || deletePraktikan.validation !== 'JARKOM JAYA'}>
+                            { deletePraktikan.onSubmit
+                                ? (
+                                    <>Memproses <Loader2 className="animate-spin" /></>
+                                ) : (
+                                    <span>Simpan</span>
+                                )
+                            }
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            className="hover:bg-red-300/70"
+                            onClick={() => {
+                                setDeletePraktikan(deletePraktikanInit);
+                                setOpenDeletePraktikan(false);
+                            }}
+                        >
+                            Batal
+                        </Button>
+                    </form>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 }

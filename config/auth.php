@@ -43,6 +43,10 @@ return [
         'admin' => [
             'driver' => 'session',
             'provider' => 'admin',
+        ],
+        'praktikan' => [
+            'driver' => 'session',
+            'provider' => 'praktikan',
         ]
     ],
 
@@ -71,6 +75,10 @@ return [
         'admin' => [
             'driver' => 'eloquent',
             'model' => App\Models\Admin::class
+        ],
+        'praktikan' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Praktikan::class
         ]
 
         // 'users' => [

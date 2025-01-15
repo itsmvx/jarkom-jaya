@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\AdminPagesController;
+use App\Http\Controllers\Pages\AdminPagesController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -24,6 +24,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::prefix('praktikan')->name('praktikan.')->group(function () {
             Route::get('/', [AdminPagesController::class, 'praktikumPraktikanIndexPage'])->name('index');
         });
+
+        Route::prefix('/nilai')->name('nilai.')->group(function () {
+            Route::get('/', [AdminPagesController::class, 'praktikumNilaiIndexPage'])->name('index');
+        });
     });
     Route::prefix('jenis-praktikum')->name('jenis-praktikum.')->group(function () {
         Route::get('/', [AdminPagesController::class, 'jenisPraktikumIndexPage'])->name('index');
@@ -46,5 +50,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/create', [AdminPagesController::class, 'kuisCreatePage'])->name('create');
         Route::get('/update', [AdminPagesController::class, 'kuisUpdatePage'])->name('update');
         Route::get('/view', [AdminPagesController::class, 'kuisViewPage'])->name('view');
+    });
+    Route::prefix('nilai-praktikum')->name('nilai-praktikum.')->group(function () {
+        Route::get('/', [AdminPagesController::class, 'nilaiIndexPage'])->name('index');
+        Route::get('/{praktikum_id}', [AdminPagesController::class, 'nilaiDetailsPage'])->name('details');
     });
 });

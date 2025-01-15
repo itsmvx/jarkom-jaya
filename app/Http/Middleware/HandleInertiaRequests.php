@@ -32,10 +32,12 @@ class HandleInertiaRequests extends Middleware
     {
         $authUser = match (true) {
             Auth::guard('admin')->check() => Auth::guard('admin')->user(),
+            Auth::guard('praktikan')->check() => Auth::guard('praktikan')->user(),
             default => null,
         };
         $role = match (true) {
             Auth::guard('admin')->check() => 'admin',
+            Auth::guard('praktikan')->check() => 'praktikan',
             default => null,
         };
         return [
@@ -45,9 +47,9 @@ class HandleInertiaRequests extends Middleware
                     ? [
                         'id' => $authUser->id,
                         'nama' => $authUser->nama,
-                        'username' => $authUser->username,
+                        'username' => $authUser->username ?? null,
                         'npm' => $authUser->npm ?? null,
-                        'avatar' => $authUser->avatar ?? null,
+                        'avatar' =>  $authUser->avatar ?? null,
                     ] : null,
                 'role' => $role
             ],

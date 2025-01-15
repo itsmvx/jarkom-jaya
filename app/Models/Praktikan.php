@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Praktikan extends Authenticatable
@@ -22,5 +23,9 @@ class Praktikan extends Authenticatable
     public function praktikum(): BelongsToMany
     {
         return $this->belongsToMany(Praktikum::class, 'praktikum_praktikan', 'praktikan_id', 'praktikum_id');
+    }
+    public function nilai(): HasMany
+    {
+        return $this->hasMany(Nilai::class, 'praktikan_id');
     }
 }

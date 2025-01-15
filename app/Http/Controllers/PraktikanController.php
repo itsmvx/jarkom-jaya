@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BanList;
 use App\Models\Praktikan;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PraktikanController extends Controller
@@ -254,6 +257,79 @@ class PraktikanController extends Controller
                     ? 'Server berhasil memproses permintaan, namun tidak ada data yang sesuai dengan pencarian diminta'
                     : 'Berhasil mengambil data!',
                 'data' => $praktikans,
+            ]);
+        } catch (QueryException $exception) {
+            return Response::json([
+                'message' => config('app.debug')
+                    ? $exception->getMessage()
+                    : 'Server gagal memproses permintaan',
+            ]);
+        }
+    }
+
+    public function uploadAvatar(Request $request)
+    {
+        $validated = $request->validate([
+            'avatar' => 'required|file|mimes:jpg,jpeg,png|max:10240',
+            'id' => 'required|exists:praktikan,id',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $praktikan = Praktikan::findOrFail($validated['id']);
+
+            if ($praktikan->avatar) {
+                Storage::disk('praktikan')->delete($praktikan->avatar);
+            }
+
+            $extension = $request->file('avatar')->getClientOriginalExtension();
+            $randomString = Str::random(8);
+            $filename = $praktikan->nama . '-' . $praktikan->npm . '-' . $randomString . '.' . $extension;
+
+            $avatarPath = $request->file('avatar')->storeAs('/', $filename, 'praktikan');
+            $praktikan->update(['avatar' => $avatarPath]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Avatar berhasil diunggah!',
+                'avatar_url' => $avatarPath,
+            ], 200);
+        } catch (\Exception $exception) {
+            DB::rollBack();
+
+            if (isset($avatarPath)) {
+                Storage::disk('praktikan')->delete($avatarPath);
+            }
+
+            return response()->json([
+                'message' => config('app.debug') ? $exception->getMessage() : 'Gagal mengunggah avatar..',
+            ], 500);
+        }
+    }
+    public function addBanList(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required|exists:praktikan,id',
+            'alasan' => 'nullable|string|min:1',
+        ]);
+
+        $authPraktikan = Auth::guard('praktikan')->user();
+        if (!$authPraktikan || ($authPraktikan->id !== $validated['id'])) {
+            return Response::json([
+                'message' => 'Hey.. ngapain kamu?'
+            ], 403);
+        }
+
+        try {
+            BanList::create([
+                'praktikan_id' => $validated['id'],
+                'alasan' => $validated['alasan'] ?? 'Tidak diketahui',
+                'kadaluarsa' => Carbon::now('Asia/Jakarta')->addWeeks(2),
+            ]);
+            return Response::json([
+                'message' => 'Berhasil memproses ban list'
             ]);
         } catch (QueryException $exception) {
             return Response::json([

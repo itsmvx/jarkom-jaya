@@ -1,7 +1,7 @@
 export type AuthUser = {
     id: string;
     nama: string;
-    username: string;
+    username: string | null;
     npm: string | null;
     avatar: string | null;
 };
@@ -9,7 +9,7 @@ export type AuthRole = 'admin' | 'aslab' | 'praktikan' | null;
 
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>, > = T & {
     auth: {
-        user: AuthUser;
+        user: AuthUser | null;
         role: AuthRole;
     };
 };
