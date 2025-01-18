@@ -119,7 +119,6 @@ export default function PraktikanRegistrationPage() {
     const togglePasswordVisibility = () => {
         setPasswordVisible((prev) => !prev);
     };
-    console.log(form.npm)
     const paragraphs = [
         "Selamat datang di website Jarkom Jaya!🫠",
         "Website ini masih dalam tahap pengembangan, jadi setiap masukanmu akan sangat membantu untuk pengembangan website ini!🥶",
@@ -173,7 +172,6 @@ export default function PraktikanRegistrationPage() {
                                         placeholder="Username"
                                         value={ form.username }
                                         onChange={ handleFormInput }
-                                        required
                                     />
                                 </div>
                                 <div className="grid gap-2">
