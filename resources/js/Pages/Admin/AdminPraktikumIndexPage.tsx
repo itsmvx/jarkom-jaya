@@ -52,7 +52,7 @@ type Praktikum = {
     id: string;
     nama: string;
     tahun: string;
-    status: 0 | 1;
+    status: boolean;
     periode: {
         nama: string;
     } | null;

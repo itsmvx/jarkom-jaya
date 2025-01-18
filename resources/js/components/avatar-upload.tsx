@@ -132,11 +132,11 @@ export function AvatarUpload({ avatarSrc, onUpload }: AvatarUploadProps) {
             </div>
             <div className="text-xs font-medium text-center text-muted-foreground [&_span]:text-red-600 [&_span]:font-bold">
                 <p><span>*</span>File gambar format jpg,jpeg,png</p>
-                <p>Ukuran tidak lebih dari 4MB</p>
+                <p>Ukuran tidak lebih dari 10MB</p>
             </div>
             <Input
                 type="file"
-                accept="image/*"
+                accept="image/,.jpg,.jpeg,.png,.webp,"
                 className="hidden"
                 ref={fileInputRef}
                 onChange={handleFileChange}

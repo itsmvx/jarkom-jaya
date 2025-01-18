@@ -15,6 +15,6 @@ class JenisPraktikum extends Model
 
     public function praktikum(): HasMany
     {
-        return $this->hasMany(Praktikum::class, 'periode_praktikum_id');
+        return $this->hasMany(Praktikum::class, 'jenis_praktikum_id');
     }
 }

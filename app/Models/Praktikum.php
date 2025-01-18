@@ -11,10 +11,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Praktikum extends Model
 {
     use HasUuids;
-
     protected $table = 'praktikum';
     protected $primaryKey = 'id';
     protected $guarded = ['id'];
+    protected $casts = [
+        'status' => 'boolean',
+    ];
 
     public function jenis(): BelongsTo
     {
@@ -27,6 +29,10 @@ class Praktikum extends Model
     public function pertemuan(): HasMany
     {
         return $this->hasMany(Pertemuan::class, 'praktikum_id');
+    }
+    public function sesi(): HasMany
+    {
+        return $this->hasMany(SesiPraktikum::class, 'praktikum_id');
     }
     public function praktikan(): BelongsToMany
     {

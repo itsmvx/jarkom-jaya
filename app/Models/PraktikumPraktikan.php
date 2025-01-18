@@ -10,4 +10,8 @@ class PraktikumPraktikan extends Model
 {
     use HasUuids;
     protected $table = 'praktikum_praktikan';
+    protected $fillable = [
+        'praktikan_id',
+        'praktikum_id',
+    ];
 }

@@ -51,7 +51,12 @@ return [
             'url' => env('APP_URL') . '/storage/praktikan',
             'visibility' => 'public',
         ],
-
+        'praktikum' => [
+            'driver' => 'local',
+            'root' => storage_path('app/praktikum'),
+            'url' => env('APP_URL') . '/storage/praktikum',
+            'visibility' => 'public',
+        ],
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
@@ -80,6 +85,7 @@ return [
     'links' => [
         public_path('storage') => storage_path('app/public'),
         public_path('storage/praktikan') => storage_path('app/praktikan'),
+        public_path('storage/praktikum') => storage_path('app/praktikum'),
     ],
 
 ];

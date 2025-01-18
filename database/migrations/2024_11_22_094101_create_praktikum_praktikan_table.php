@@ -14,6 +14,11 @@ return new class extends Migration
         Schema::create('praktikum_praktikan', function (Blueprint $table) {
             $table->foreignUuid('praktikum_id')->constrained('praktikum')->cascadeOnDelete();
             $table->foreignUuid('praktikan_id')->constrained('praktikan')->cascadeOnDelete();
+            $table->foreignUuid('aslab_id')->nullable()->constrained('aslab')->nullOnDelete();
+            $table->string('krs')->nullable();
+            $table->string('pembayaran')->nullable();
+            $table->string('modul')->nullable();
+            $table->boolean('terverifikasi')->default(false);
             $table->timestamps();
 
             $table->unique(['praktikum_id', 'praktikan_id']);

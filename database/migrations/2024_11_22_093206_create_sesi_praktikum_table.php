@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ban_list', function (Blueprint $table) {
+        Schema::create('sesi_praktikum', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('praktikan_id')->constrained('praktikan')->cascadeOnDelete();
-            $table->string('alasan');
-            $table->dateTime('kadaluarsa');
+            $table->string('nama');
+            $table->string('waktu');
+            $table->foreignUuid('praktikum_id')->constrained('praktikum');
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ban_list');
+        Schema::dropIfExists('sesi_praktikum');
     }
 };

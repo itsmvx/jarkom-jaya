@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
-import { AlertCircle, ArrowLeft, Home } from 'lucide-react'
-import { Link } from "@inertiajs/react";
+import { AlertCircle, ArrowLeft, Home, LogIn } from 'lucide-react'
+import { Link, router } from "@inertiajs/react";
 
 export default function ErrorPage({ status }: { status: number }) {
     const title = {
@@ -21,22 +21,29 @@ export default function ErrorPage({ status }: { status: number }) {
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-4">
+            <div className="w-10 h-10 bg-green-500"></div>
+
             <div className="text-center space-y-6 max-w-md">
                 <AlertCircle className="w-16 h-16 text-destructive mx-auto" />
                 <h1 className="text-4xl font-bold tracking-tight">{title}</h1>
                 <p className="text-lg text-muted-foreground">{description}</p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button asChild variant="outline">
+                <div className="flex flex-col sm:flex-row gap-1.5 sm:gap-1 justify-center">
+                    <Button className="bg-red-600/80 hover:bg-red-600" onClick={() => window.history.back()}>
+                        Kembali <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <Button asChild className="bg-blue-600/80 hover:bg-blue-600 order-last sm:order-none">
                         <Link href="/"><Home className="mr-2 h-4 w-4" />
                             Halaman Utama
                         </Link>
                     </Button>
-                    <Button className="bg-red-600/80 hover:bg-red-600" onClick={() => window.history.back()}>
-                        <ArrowLeft className="h-4 w-4" />
-                    </Button>
+                    { [401,403].includes(status) && (
+                        <Button className="bg-green-600/80 hover:bg-green-600" onClick={() => router.visit(route('praktikan.login'), { replace: true })}>
+                            Login <LogIn className="h-4 w-4" />
+                        </Button>
+                    ) }
                 </div>
             </div>
         </div>
-    )
+    );
 }
 

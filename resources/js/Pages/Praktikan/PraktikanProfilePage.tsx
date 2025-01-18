@@ -19,6 +19,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { CardDescription, CardTitle } from "@/components/ui/card";
 
 export default function PraktikanProfilePage({ auth, praktikan }: PageProps<{
     praktikan: {
@@ -30,8 +31,7 @@ export default function PraktikanProfilePage({ auth, praktikan }: PageProps<{
         avatar: string | null;
     };
 }>) {
-    const authUser = auth.user;
-    if (!authUser) {
+    if (!auth.user) {
         return (
             <ErrorPage status={401} />
         );
@@ -84,7 +84,7 @@ export default function PraktikanProfilePage({ auth, praktikan }: PageProps<{
     const handleUpdateFormSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setUpdateForm((prevState) => ({ ...prevState, onSubmit: true }));
-        const { nama, npm, username } = updateForm;
+        const { nama, npm, username, jenis_kelamin } = updateForm;
         const createSchema = z.object({
             nama: z.string({ message: 'Format nama Praktikan tidak valid! '}).min(1, { message: 'Nama Praktikan wajib diisi!' }),
             npm: z.string({ message: 'Format NPM Praktikan tidak valid! '}).min(1, { message: 'NPM Praktikan wajib diisi!' }),
@@ -113,6 +113,7 @@ export default function PraktikanProfilePage({ auth, praktikan }: PageProps<{
             nama: nama,
             npm: npm,
             username: username,
+            jenis_kelamin: jenis_kelamin ?? null
         })
             .then((res) => {
                 toast({
@@ -159,7 +160,7 @@ export default function PraktikanProfilePage({ auth, praktikan }: PageProps<{
                     title: "Berhasil!",
                     description: res.data.message,
                 });
-                router.reload({ only: ['praktikan'] });
+                router.reload({ only: ['praktikan', 'auth'] });
             })
             .catch((err: unknown) => {
                 const errMsg: string = err instanceof AxiosError && err.response?.data?.message
@@ -170,7 +171,7 @@ export default function PraktikanProfilePage({ auth, praktikan }: PageProps<{
                     title: "Permintaan gagal diproses!",
                     description: errMsg,
                 });
-            })
+            });
     };
 
     type AnomaliGender = {
@@ -185,7 +186,6 @@ export default function PraktikanProfilePage({ auth, praktikan }: PageProps<{
     };
     const [ anomaliGender, setAnomaliGender ] = useState<AnomaliGender>(anomaliGenderInit);
     const [ openAnomaliGender, setOpenAnomaliGender ] = useState<boolean>(false);
-    const [ acceptAnomaliGender, setAcceptAnomaliGender ] = useState<boolean>(false);
     const handleAnomaliGender = (key: keyof AnomaliGender, value: string | boolean) => {
         setAnomaliGender((prevState) => ({ ...prevState, [key]: value }));
     };
@@ -196,10 +196,10 @@ export default function PraktikanProfilePage({ auth, praktikan }: PageProps<{
     const handleAcceptAnomaliGender = () => {
         axios.post(route('praktikan.add-ban-list'), {
             id: praktikan.id,
-            alasan: 'Indikasi Pelangi'
+            alasan: `Menyebut dirinya bukan Laki-Laki atau Perempuan tetapi ${anomaliGender.value} Awkwokwokwo KoCak`
         })
             .then(() => {
-                router.visit(route('ban-list'));
+                router.visit(route('ban-list'), { replace: true });
             })
             .catch(() => {
                 setOpenAnomaliGender(false);
@@ -214,8 +214,14 @@ export default function PraktikanProfilePage({ auth, praktikan }: PageProps<{
 
     return (
         <>
-            <PraktikanLayout authUser={ authUser }>
+            <PraktikanLayout auth={ auth }>
                 <Head title="Praktikan - Profil" />
+                <CardTitle>
+                    Profil Saya
+                </CardTitle>
+                <CardDescription>
+                    Menampilkan data profil akun
+                </CardDescription>
                 <AvatarUpload avatarSrc={praktikan.avatar ? `/storage/praktikan/${praktikan.avatar}` : undefined} onUpload={handleUploadAvatar} />
                 <form className={ cn("grid items-start gap-4") } onSubmit={ handleUpdateFormSubmit }>
                     <div className="flex flex-col md:flex-row md:flex-wrap gap-3 md:items-center *:grow">

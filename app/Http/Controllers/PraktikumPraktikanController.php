@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Praktikan;
 use App\Models\Praktikum;
+use App\Models\PraktikumPraktikan;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Str;
 
 class PraktikumPraktikanController extends Controller
 {
@@ -29,6 +34,74 @@ class PraktikumPraktikanController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
+    {
+        $authPraktikan = Auth::guard('praktikan')->user();
+        if (!$authPraktikan) {
+            return Response::json([
+                'message' => 'Belum terautentikasi sebagai Praktikan'
+            ], 401);
+        }
+
+        $validated = $request->validate([
+            'praktikum_id' => 'required',
+            'krs' => 'required|file|max:4096',
+            'pembayaran' => 'required|file|max:4096',
+            'modul' => 'nullable|file|mimes:png,jpg,jpeg|max:4096',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $isExistsPraktikumPraktikan = PraktikumPraktikan::where('praktikan_id', $authPraktikan->id)
+                ->where('praktikum_id', $validated['praktikum_id'])
+                ->exists();
+            if ($isExistsPraktikumPraktikan) {
+                DB::rollBack();
+                return Response::json([
+                    'message' => 'Praktikan sudah terdaftar ke Praktikum yang dipilih'
+                ], 409);
+            }
+
+            $praktikum = Praktikum::findOrFail($validated['praktikum_id']);
+            $praktikumSlug = Str::slug($praktikum->nama, '-');
+
+            $extensionKrs = $request->file('krs')->getClientOriginalExtension();
+            $filenameKrs = $authPraktikan->npm . '_' . $authPraktikan->nama . '_' . 'KRS' . '.' . $extensionKrs;
+
+            $extensionPembayaran = $request->file('pembayaran')->getClientOriginalExtension();
+            $filenamePembayaran = $authPraktikan->npm . '_' . $authPraktikan->nama . '_' . 'PEMBAYARAN-PRAKTIKUM' . '.' . $extensionPembayaran;
+
+            $modulPath = null;
+
+            if ($request->hasFile('modul')) {
+                $extensionModul = $request->file('modul')->getClientOriginalExtension();
+                $filenameModul = $authPraktikan->npm . '_' . $authPraktikan->nama . '_' . 'PEMBAYARAN-MODUL' . '.' .$extensionModul;
+                $modulPath = $request->file('modul')->storeAs('/' . $praktikumSlug, $filenameModul, 'praktikum');
+            }
+            $krsPath = $request->file('krs')->storeAs('/' . $praktikumSlug, $filenameKrs, 'praktikum');
+            $pembayaranPath = $request->file('pembayaran')->storeAs('/' . $praktikumSlug, $filenamePembayaran, 'praktikum');
+
+            PraktikumPraktikan::insert([
+                'praktikan_id' => $authPraktikan->id,
+                'praktikum_id' => $validated['praktikum_id'],
+                'krs' => $krsPath,
+                'pembayaran' => $pembayaranPath,
+                'modul' => $modulPath
+            ]);
+
+            DB::commit();
+            return Response::json([
+                'message' => 'Berhasil mendaftar ke Praktikum yang dipilih!'
+            ]);
+        } catch (QueryException $exception) {
+            DB::rollBack();
+            return Response::json([
+                'message' => config('app.debug')
+                    ? $exception->getMessage()
+                    : 'Server gagal memproses permintaan.',
+            ], 500);
+        }
+    }
+    public function storeMass(Request $request)
     {
         $validated = $request->validate([
             'praktikan_ids' => 'required|array',

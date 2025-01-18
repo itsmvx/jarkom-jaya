@@ -10,12 +10,11 @@ import { Footer } from "@/components/app-footer";
 import { Toaster } from "@/components/ui/toaster";
 import { PraktikanSidebar } from "@/components/praktikan-sidebar";
 import { ProfileDropdown } from "@/components/profile-dropdown";
-import { AuthUser } from "@/types";
+import { PageProps } from "@/types";
 
-export const PraktikanLayout = ({ children, authUser }: {
+export const PraktikanLayout = ({ auth, children }: PageProps<{
     children: ReactNode;
-    authUser: AuthUser;
-}) => {
+}>) => {
     return (
         <SidebarProvider>
             <PraktikanSidebar />
@@ -26,7 +25,7 @@ export const PraktikanLayout = ({ children, authUser }: {
                         <Separator orientation="vertical" className="h-4"/>
                         <h3 className="text-sm hidden sm:block font-medium text-muted-foreground/80 italic select-none">RPL COULD NEVER DO</h3>
                     </div>
-                    <ProfileDropdown authUser={authUser} />
+                    <ProfileDropdown auth={auth} />
                 </header>
                 <div className="p-3 bg-muted">
                     <Card className="p-5 md:p-6 space-y-4 bg-white rounded-md border min-h-[calc(100vh-10rem)]">

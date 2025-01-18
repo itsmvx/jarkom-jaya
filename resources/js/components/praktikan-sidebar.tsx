@@ -38,13 +38,13 @@ const data: {
             items: [
                 {
                     title: "Registrasi Praktikum",
-                    url: route('admin.jenis-praktikum.index'),
-                    route: 'admin.jenis-praktikum.index'
+                    url: route('praktikan.praktikum.create'),
+                    route: 'praktikan.praktikum.create'
                 },
                 {
                     title: "Histori Praktikum",
-                    url: route('admin.periode-praktikum.index'),
-                    route: 'admin.periode-praktikum.index'
+                    url: route('praktikan.praktikum.index'),
+                    route: 'praktikan.praktikum.index'
                 },
             ],
         },
@@ -52,27 +52,27 @@ const data: {
             title: "Kuis",
             url: "#",
             items: [
-                {
-                    title: "Mulai Kuis",
-                    url: route('admin.kuis.label.index'),
-                    route: 'admin.kuis.label.index'
-                },
-                {
-                    title: "Histori Kuis",
-                    url: route('admin.kuis.soal.index'),
-                    route: 'admin.kuis.soal.index'
-                },
+                // {
+                //     title: "Mulai Kuis",
+                //     url: route('admin.kuis.label.index'),
+                //     route: 'admin.kuis.label.index'
+                // },
+                // {
+                //     title: "Histori Kuis",
+                //     url: route('admin.kuis.soal.index'),
+                //     route: 'admin.kuis.soal.index'
+                // },
             ],
         },
         {
             title: "Informasi Penting",
             url: "#",
             items: [
-                {
-                    title: "Manajemen Praktikan",
-                    url: route('admin.praktikan.index'),
-                    route: 'admin.praktikan.index'
-                },
+                // {
+                //     title: "Manajemen Praktikan",
+                //     url: route('admin.praktikan.index'),
+                //     route: 'admin.praktikan.index'
+                // },
             ],
         },
     ],

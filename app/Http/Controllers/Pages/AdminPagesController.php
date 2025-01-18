@@ -145,6 +145,7 @@ class AdminPagesController extends Controller
                 'periode:id,nama',
                 'pertemuan:id,praktikum_id,nama',
                 'pertemuan.modul:id,pertemuan_id,nama,topik',
+                'sesi:id,nama,waktu'
             ])->findOrFail($idParam);
 
             return Inertia::render('Admin/AdminPraktikumUpdatePage', [
@@ -156,6 +157,7 @@ class AdminPagesController extends Controller
                     'jenis',
                     'periode',
                     'pertemuan',
+                    'sesi'
                 ]),
                 'jenisPraktikums' => fn() => JenisPraktikum::select('id', 'nama')->orderBy('created_at', 'desc')->get(),
                 'periodePraktikums' => fn() => PeriodePraktikum::select('id', 'nama')->get(),

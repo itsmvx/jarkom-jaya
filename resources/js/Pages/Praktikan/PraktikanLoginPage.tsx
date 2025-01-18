@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { LogoJarkom } from "@/lib/StaticImagesLib";
 import { Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
-import { Head, router } from "@inertiajs/react";
+import { Head, Link, router } from "@inertiajs/react";
 import axios, { AxiosError } from "axios";
 import { useToast } from "@/hooks/use-toast";
 import { BgAniPC } from "@/lib/StaticLib";
@@ -23,7 +23,6 @@ const loginSchema = z.object({
     password: z.string({ message: 'Password wajib diisi!' }).min(6, "Password minimal 6 karakter").max(100, "Password terlalu panjang"),
 });
 export default function PraktikanLoginPage() {
-
     const { toast } = useToast();
     const formInit = {
         username: '',
@@ -161,6 +160,12 @@ export default function PraktikanLoginPage() {
                                             ) }
                                         </button>
                                     </div>
+                                </div>
+                                <div className="!-mb-4 flex flex-row gap-1 justify-end text-sm">
+                                    <p>Belum punya akun?</p>
+                                    <Link href={route('praktikan.register')} className="font-semibold underline-offset-2 hover:underline">
+                                        Buat Akun
+                                    </Link>
                                 </div>
                             </CardContent>
                             <CardFooter className="pt-3 pb-8 flex flex-col gap-2.5">

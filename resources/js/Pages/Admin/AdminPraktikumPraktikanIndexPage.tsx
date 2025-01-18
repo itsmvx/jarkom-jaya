@@ -2,7 +2,7 @@ import { AdminLayout } from "@/layouts/AdminLayout";
 import { Head, router } from "@inertiajs/react";
 import { CardDescription, CardTitle } from "@/components/ui/card";
 import { NotificationCard } from "@/components/notification-card";
-import { ArrowUpDown, Download, Loader2, Trash2, TriangleAlert } from "lucide-react";
+import { ArrowBigLeft, ArrowUpDown, Download, Loader2, Trash2, TriangleAlert } from "lucide-react";
 import { FileUploader } from "@/components/file-uploader";
 import { Button } from "@/components/ui/button";
 import { FormEvent, useEffect, useState } from "react";
@@ -147,7 +147,7 @@ export default function AdminPraktikumPraktikanIndexPage({ praktikum }: {
                 setOnFetchIdPraktikan(false);
                 setOnSubmitUploadContents(true);
 
-                axios.post(route('praktikum-praktikan.create'), {
+                axios.post(route('praktikum-praktikan.create-mass'), {
                     praktikum_id: praktikum.id,
                     praktikan_ids: uploadContents.map((content) => praktikansData.find((praktikan) => praktikan.npm === content.npm)?.id).filter((filt) => Boolean(filt))
                 })
@@ -436,6 +436,9 @@ export default function AdminPraktikumPraktikanIndexPage({ praktikum }: {
         <>
             <AdminLayout>
                 <Head title="Admin - Praktikum|Data Praktikan"/>
+                <Button variant="ghost" size="icon" onClick={ () => router.visit(route('admin.praktikum.index')) }>
+                    <ArrowBigLeft />
+                </Button>
                 <CardTitle>Data Praktikan</CardTitle>
                 <CardDescription>Menampilkan data Praktikan terdaftar pada Praktikum {praktikum.nama}</CardDescription>
                 { uploadErrors.length > 0 && (

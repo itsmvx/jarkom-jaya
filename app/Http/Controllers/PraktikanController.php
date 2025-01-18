@@ -39,17 +39,25 @@ class PraktikanController extends Controller
     {
         $validated = $request->validate([
             'nama' => 'required|string|min:1',
-            'npm' => 'required|string|min:1',
-            'username' => 'required|string|min:1|unique:praktikan,username',
-            'password' => 'required|string|min:1',
+            'npm' => [
+                'required',
+                'string',
+                'min:1',
+                'regex:/^\d{2}\.\d{4}\.\d{1}\.\d{5}$/',
+            ],
+            'username' => 'nullable|string|min:3|unique:praktikan,username',
+            'password' => 'required|string|min:6',
+        ], [
+            'npm.regex' => 'Format NPM tidak sesuai!'
         ]);
+
 
         try {
             Praktikan::create([
                 'id' => Str::uuid(),
                 'nama' => $validated['nama'],
                 'npm' => $validated['npm'],
-                'username' => $validated['username'],
+                'username' => $validated['username'] ?? null,
                 'password' => Hash::make($validated['password'], ['rounds' => 12]),
             ]);
 
@@ -180,6 +188,7 @@ class PraktikanController extends Controller
             'nama' => 'required|string|min:1',
             'npm' => 'required|string|min:1',
             'username' => 'required|string|min:1|unique:praktikan,username,' . $request->id,
+            'jenis_kelamin' => 'nullable|in:Laki-laki,Perempuan',
         ]);
 
         try {
@@ -187,6 +196,7 @@ class PraktikanController extends Controller
                 'nama' => $validated['nama'],
                 'npm' => $validated['npm'],
                 'username' => $validated['username'],
+                'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
             ]);
 
             return Response::json([

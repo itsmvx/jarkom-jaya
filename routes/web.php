@@ -13,6 +13,7 @@ use App\Http\Controllers\PertemuanController;
 use App\Http\Controllers\PraktikanController;
 use App\Http\Controllers\PraktikumController;
 use App\Http\Controllers\PraktikumPraktikanController;
+use App\Http\Controllers\SesiPraktikumController;
 use App\Http\Controllers\SoalController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Response;
@@ -53,11 +54,11 @@ Route::get('/ban-list', [PraktikanPagesController::class, 'banListPage'])->name(
 
 Route::get('/login-admin', [AdminPagesController::class, 'loginPage'])->name('admin.login');
 Route::get('/login', [PraktikanPagesController::class, 'loginPage'])->name('praktikan.login');
+Route::get('/register', [PraktikanPagesController::class, 'registerPage'])->name('praktikan.register');
 
 Route::prefix('auth')->name('auth.')->group(function () {
     Route::post('/admin');
     Route::post('/praktikan', [AuthController::class, 'authPraktikan'])->name('praktikan');
-
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
@@ -87,6 +88,11 @@ Route::prefix('modul')->name('modul.')->group(function () {
     Route::post('/update', [ModulController::class, 'update'])->name('update');
     Route::post('/delete', [ModulController::class, 'destroy'])->name('delete');
 });
+Route::prefix('sesi')->name('sesi.')->group(function () {
+    Route::post('/create', [SesiPraktikumController::class, 'create'])->name('create');
+    Route::post('/update', [SesiPraktikumController::class, 'update'])->name('update');
+    Route::post('/delete', [SesiPraktikumController::class, 'destroy'])->name('delete');
+});
 Route::prefix('aslab')->name('aslab.')->group(function () {
     Route::post('/create', [AslabController::class, 'store'])->name('create');
     Route::post('/update', [AslabController::class, 'update'])->name('update');
@@ -102,6 +108,7 @@ Route::prefix('praktikan')->name('praktikan.')->group(function () {
 });
 Route::prefix('praktikum-praktikan')->name('praktikum-praktikan.')->group(function () {
     Route::post('/create', [PraktikumPraktikanController::class, 'store'])->name('create');
+    Route::post('/create-mass', [PraktikumPraktikanController::class, 'storeMass'])->name('create-mass');
     Route::post('/update', [PraktikumPraktikanController::class, 'update'])->name('update');
     Route::post('/delete', [PraktikumPraktikanController::class, 'destroy'])->name('delete');
 });

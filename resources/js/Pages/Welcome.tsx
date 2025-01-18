@@ -1,11 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-    GraduationCap,
-    LogIn,
-    ChevronsDown,
-    SquareArrowOutUpRight,
-} from 'lucide-react'
+import { GraduationCap, ChevronsDown, SquareArrowOutUpRight, } from 'lucide-react'
 import { Head, Link } from "@inertiajs/react";
 import { LandingPrak, MahiruStandart } from "@/lib/StaticImagesLib";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,8 +8,10 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Aslab_DATA } from "@/lib/StaticDataLib";
 import { Footer } from "@/components/app-footer";
 import { AppLayout } from "@/layouts/AppLayout";
+import { PageProps } from "@/types";
+import { ProfileDropdown } from "@/components/profile-dropdown";
 
-export default function LandingPage() {
+export default function LandingPage({ auth }: PageProps) {
     return (
         <>
             <AppLayout>
@@ -29,11 +26,7 @@ export default function LandingPage() {
                             <p>JARKOM JAYA</p>
                         </Link>
                         <nav className="ml-auto flex gap-4 sm:gap-6">
-                            <Link href={ route('admin.login') }
-                                  className="p-2 flex items-center justify-center gap-1.5 font-semibold bg-none hover:bg-muted transition-colors ease-in-out duration-150 rounded-md">
-                                <LogIn className="h-7 w-7"/>
-                                <p>Masuk</p>
-                            </Link>
+                            <ProfileDropdown auth={auth} />
                         </nav>
                     </header>
                     <main className="flex-1">
