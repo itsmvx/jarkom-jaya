@@ -44,6 +44,7 @@ class PraktikumPraktikanController extends Controller
 
         $validated = $request->validate([
             'praktikum_id' => 'required',
+            'sesi_praktikum_id' => 'required|exists:sesi_praktikum,id',
             'krs' => 'required|file|max:4096',
             'pembayaran' => 'required|file|max:4096',
             'modul' => 'nullable|file|mimes:png,jpg,jpeg|max:4096',
@@ -83,6 +84,7 @@ class PraktikumPraktikanController extends Controller
             PraktikumPraktikan::insert([
                 'praktikan_id' => $authPraktikan->id,
                 'praktikum_id' => $validated['praktikum_id'],
+                'sesi_praktikum_id' => $validated['sesi_praktikum_id'],
                 'krs' => $krsPath,
                 'pembayaran' => $pembayaranPath,
                 'modul' => $modulPath

@@ -22,7 +22,7 @@ return new class extends Migration
             $table->boolean('terverifikasi')->default(false);
             $table->timestamps();
 
-            $table->unique(['praktikum_id', 'praktikan_id']);
+            $table->primary(['praktikum_id', 'praktikan_id']);
         });
     }
 

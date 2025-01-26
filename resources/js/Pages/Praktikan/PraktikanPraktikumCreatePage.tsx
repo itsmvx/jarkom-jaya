@@ -2,7 +2,7 @@ import { Label } from "@/components/ui/label";
 import { FormEvent, useState } from "react";
 import { Head, router } from "@inertiajs/react";
 import { CardDescription, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn, parseSesiTime } from "@/lib/utils";
 import { ArrowBigLeft, Check, Loader2 } from "lucide-react";
 import { z } from "zod";
 import axios, { AxiosError } from "axios";
@@ -33,20 +33,30 @@ type Praktikum = {
         id: string;
         nama: string;
     } | null;
+    sesi: {
+        id: string;
+        nama: string;
+        kuota: number | null;
+        sisa_kuota: number | null;
+        hari: string;
+        waktu_mulai: string;
+        waktu_selesai: string;
+    }[];
     available: boolean;
 };
 
-export default function PraktikanPraktikumCreatePage({ auth, jenisPraktikums }: PageProps<{
+export default function PraktikanPraktikumCreatePage({ auth, jenisPraktikums, currentDate }: PageProps<{
     jenisPraktikums: {
         id: string;
         nama: string;
         praktikum: Praktikum[];
     }[];
+    currentDate: string;
 }>) {
     const { toast } = useToast();
-
     type CreateForm = {
         praktikum_id: string;
+        sesi_praktikum_id: string;
         krs: File | null;
         pembayaran: File | null;
         modul: File | null;
@@ -55,6 +65,7 @@ export default function PraktikanPraktikumCreatePage({ auth, jenisPraktikums }: 
     };
     const createFormInit: CreateForm = {
         praktikum_id: '',
+        sesi_praktikum_id: '',
         krs: null,
         pembayaran: null,
         modul: null,
@@ -78,11 +89,14 @@ export default function PraktikanPraktikumCreatePage({ auth, jenisPraktikums }: 
             });
             return;
         }
-        const { praktikum_id, krs, pembayaran, modul } = createForm;
+        const { praktikum_id, sesi_praktikum_id, krs, pembayaran, modul } = createForm;
         const createSchema = z.object({
             praktikum_id: z
                 .string({ message: 'Format Praktikum dipilih tidak valid!' })
                 .min(1, { message: 'Praktikum wajib dipilih!' }),
+            sesi_praktikum_id: z
+                .string({ message: 'Format Sesi Praktikum dipilih tidak valid!' })
+                .min(1, { message: 'Sesi Praktikum wajib dipilih!' }),
             krs: z
                 .instanceof(File, { message: 'KRS harus berupa file yang valid!' })
                 .nullable()
@@ -97,6 +111,7 @@ export default function PraktikanPraktikumCreatePage({ auth, jenisPraktikums }: 
         });
         const createParse = createSchema.safeParse({
             praktikum_id: praktikum_id,
+            sesi_praktikum_id: sesi_praktikum_id,
             krs: krs,
             pembayaran: pembayaran,
             modul: modul
@@ -114,6 +129,7 @@ export default function PraktikanPraktikumCreatePage({ auth, jenisPraktikums }: 
 
         const formData = new FormData();
         formData.append('praktikum_id', praktikum_id);
+        formData.append('sesi_praktikum_id', sesi_praktikum_id);
         krs && formData.append('krs', krs);
         pembayaran && formData.append('pembayaran', pembayaran);
         modul && formData.append('modul', modul);
@@ -171,27 +187,74 @@ export default function PraktikanPraktikumCreatePage({ auth, jenisPraktikums }: 
                 <form className={ cn("grid items-start gap-4") } onSubmit={ handleCreateFormSubmit }>
                     <div className="flex flex-col md:flex-row md:flex-wrap gap-3 md:items-center *:grow">
                         <div className="grid gap-2 min-w-80">
-                            <Label htmlFor="npm">Pilih Praktikum<span className="text-red-600 font-semibold">*</span></Label>
-                            <Select onValueChange={ (val) => handleChangeCreateForm('praktikum_id', val) }>
+                            <Label htmlFor="praktikum">Pilih Praktikum<span className="text-red-600 font-semibold">*</span></Label>
+                            <Select onValueChange={(val) => handleChangeCreateForm('praktikum_id', val)}>
                                 <SelectTrigger className="min-w-80">
-                                    <SelectValue placeholder="Pilih praktikum..."/>
+                                    <SelectValue placeholder="Pilih praktikum..." />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    { jenisPraktikums.map((jenis, index) => ((
-                                        <SelectGroup key={ index }>
-                                            <SelectLabel>{ jenis.nama }</SelectLabel>
-                                            {
-                                                jenis.praktikum.length > 0
-                                                    ? jenis.praktikum.map((praktikum) => ((
-                                                        <SelectItem key={ praktikum.id } value={ praktikum.id } disabled={ !praktikum.available }>{ `${ praktikum.nama } ${!praktikum.available ? '(Sudah terdaftar)' : ''} ` }</SelectItem>
-                                                    )))
-                                                    : (
-                                                        <SelectItem value={ `null-${Math.random().toString(36).substring(2, 6)}` } disabled>Tidak ada Praktikum tersedia</SelectItem>
-                                                    )
-                                            }
+                                    {jenisPraktikums.map((jenis, index) => (
+                                        <SelectGroup key={index}>
+                                            <SelectLabel>{jenis.nama}</SelectLabel>
+                                            {jenis.praktikum.length > 0 ? (
+                                                jenis.praktikum.map((praktikum) => (
+                                                    <SelectItem
+                                                        key={praktikum.id}
+                                                        value={praktikum.id}
+                                                        disabled={!praktikum.available}
+                                                    >
+                                                        {`${praktikum.nama} ${
+                                                            !praktikum.available ? '(Sudah terdaftar)' : ''
+                                                        }`}
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <SelectItem
+                                                    value={`null-${Math.random().toString(36).substring(2, 6)}`}
+                                                    disabled
+                                                >
+                                                    Tidak ada Praktikum tersedia
+                                                </SelectItem>
+                                            )}
                                         </SelectGroup>
-                                    )))
-                                    }
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid gap-2 min-w-80">
+                            <Label htmlFor="sesi_praktikum">Pilih Sesi Praktikum<span className="text-red-600 font-semibold">*</span></Label>
+                            <Select onValueChange={(val) => handleChangeCreateForm('sesi_praktikum_id', val)}>
+                                <SelectTrigger className="min-w-80">
+                                    <SelectValue placeholder="Pilih sesi praktikum..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {jenisPraktikums.map((jenis) =>
+                                        jenis.praktikum.map((praktikum) => (
+                                            <SelectGroup key={praktikum.id}>
+                                                <SelectLabel>{praktikum.nama}</SelectLabel>
+                                                {praktikum.sesi.length > 0 ? (
+                                                    praktikum.sesi.map((sesi) => (
+                                                        <SelectItem
+                                                            key={sesi.id}
+                                                            value={sesi.id}
+                                                            disabled={(sesi.kuota ?? 0) <= 0}
+                                                        >
+                                                            {`${sesi.nama} - ${sesi.hari} (${parseSesiTime(sesi.waktu_mulai, currentDate)} - ${parseSesiTime(sesi.waktu_selesai, currentDate)}) ${
+                                                                (sesi.kuota ?? 0) <= 0 ? '(Kuota Penuh)' : ''
+                                                            }`}
+                                                        </SelectItem>
+                                                    ))
+                                                ) : (
+                                                    <SelectItem
+                                                        value={`null-${Math.random().toString(36).substring(2, 6)}`}
+                                                        disabled
+                                                    >
+                                                        Tidak ada sesi tersedia
+                                                    </SelectItem>
+                                                )}
+                                            </SelectGroup>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -233,7 +296,7 @@ export default function PraktikanPraktikumCreatePage({ auth, jenisPraktikums }: 
                             />
                         </div>
                     </div>
-                    <Button type="submit" disabled={ createForm.onSubmit || !createForm.praktikum_id || !createForm.krs || !createForm.pembayaran || createForm.onSuccess } className="w-44 ml-auto">
+                    <Button type="submit" disabled={ createForm.onSubmit || !createForm.praktikum_id || !createForm.sesi_praktikum_id || !createForm.krs || !createForm.pembayaran || createForm.onSuccess } className="w-44 ml-auto">
                         { createForm.onSubmit
                             ? (
                                 <>Memproses <Loader2 className="animate-spin"/></>

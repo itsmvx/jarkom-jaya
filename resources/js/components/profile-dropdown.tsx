@@ -12,7 +12,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { LogOut, Settings, ChevronDown, UserRound, LogIn } from 'lucide-react'
+import { LogOut, ChevronDown, UserRound, LogIn, PanelsTopLeft } from 'lucide-react'
 import { PageProps } from "@/types";
 import { Link, router } from "@inertiajs/react";
 import axios, { AxiosError } from "axios";
@@ -92,17 +92,17 @@ export function ProfileDropdown({ className, auth }: PageProps<{
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                     <DropdownMenuItem onClick={ handleDashboard }>
-                        <UserRound className="mr-2 h-4 w-4" />
+                        <PanelsTopLeft className="mr-2 h-4 w-4" />
                         <span>Dashboard</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem disabled={ !isProfileAvailable } onClick={ handleProfile}>
                         <UserRound className="mr-2 h-4 w-4" />
                         <span>Profil</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Settings</span>
-                    </DropdownMenuItem>
+                    {/*<DropdownMenuItem>*/}
+                    {/*    <Settings className="mr-2 h-4 w-4" />*/}
+                    {/*    <span>Settings</span>*/}
+                    {/*</DropdownMenuItem>*/}
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={ handleLogout } className="focus:bg-red-300/40">

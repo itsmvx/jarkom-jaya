@@ -3,6 +3,8 @@ import { twMerge } from "tailwind-merge"
 import type { Delta } from "quill";
 import { QuillDeltaToHtmlConverter } from 'quill-delta-to-html';
 import parse from 'html-react-parser';
+import { format, parse as dateParse } from "date-fns";
+import { id as localeId } from "date-fns/locale";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
@@ -31,6 +33,12 @@ export const deltaParse = (data: string): Delta => {
         console.warn("Invalid Delta format");
     }
     return { ops: [{ insert: "\n" }] } as Delta;
+};
+export const parseSesiTime = (time: string, currentDate: string | Date): string => {
+    const date = dateParse(time, 'HH:mm:ss', new Date(currentDate));
+    return format(date, 'HH:mm', {
+        locale: localeId
+    });
 };
 
 export const RenderQuillDelta = ({ delta, imgWidth = 32, className }: {

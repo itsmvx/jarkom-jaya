@@ -15,7 +15,7 @@ import {
     useReactTable
 } from "@tanstack/react-table";
 import { ViewPerPage } from "@/components/view-per-page";
-import { romanToNumber } from "@/lib/utils";
+import { parseSesiTime } from "@/lib/utils";
 import {
     DropdownMenu,
     DropdownMenuContent, DropdownMenuItem,
@@ -32,9 +32,17 @@ type Praktikum = {
     periode: {
         nama: string;
     } | null;
+    sesi: {
+        id: string;
+        nama: string;
+        hari: string;
+        waktu_mulai: string;
+        waktu_selesai: string;
+    } | null;
 };
-export default function PraktikanPraktikumIndexPage({ auth, praktikums }: PageProps<{
+export default function PraktikanPraktikumIndexPage({ auth, praktikums, currentDate }: PageProps<{
     praktikums: Praktikum[];
+    currentDate: string;
 }>) {
     const columns: ColumnDef<Praktikum>[] = [
         {
@@ -58,8 +66,8 @@ export default function PraktikanPraktikumIndexPage({ auth, praktikums }: PagePr
             ),
         },
         {
-            accessorFn: (row) => row.periode?.nama || "-",
-            id: "periode.nama",
+            accessorFn: (row) => row.sesi?.nama || "-",
+            id: "sesi.nama",
             header: ({ column }) => {
                 return (
                     <Button
@@ -67,22 +75,19 @@ export default function PraktikanPraktikumIndexPage({ auth, praktikums }: PagePr
                         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                         className="w-full justify-start"
                     >
-                        Periode
+                        Sesi
                         <ArrowUpDown />
                     </Button>
                 );
             },
             cell: ({ row }) => {
+                const sesi = row.original.sesi;
                 return (
-                    <div className="capitalize min-w-20 indent-4">
-                        {row.getValue<string>("periode.nama")}
+                    <div className="capitalize min-w-40 ml-4 flex flex-col md:flex-row flex-wrap gap-x-0.5">
+                        <p>{ sesi ? `${sesi.nama} - ${sesi.hari} ` : '-'}</p>
+                        <p>{ sesi ? `(${parseSesiTime(sesi.waktu_mulai, currentDate)} - ${parseSesiTime(sesi.waktu_selesai, currentDate)})` : ""}</p>
                     </div>
                 );
-            },
-            sortingFn: (rowA, rowB) => {
-                const valueA = romanToNumber(rowA.getValue<string>("periode.nama"));
-                const valueB = romanToNumber(rowB.getValue<string>("periode.nama"));
-                return valueA - valueB;
             },
         },
         {

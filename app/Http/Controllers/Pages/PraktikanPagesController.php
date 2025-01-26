@@ -96,15 +96,22 @@ class PraktikanPagesController extends Controller
         $search = $request->query->get('search');
 
         return Inertia::render('Praktikan/PraktikanPraktikumIndexPage', [
+            'currentDate' => fn() => Carbon::now('Asia/Jakarta'),
             'praktikums' => fn() => Praktikum::select([
                 'praktikum.id',
                 'praktikum.nama',
                 'praktikum.tahun',
                 'praktikum_praktikan.terverifikasi',
-                'periode_praktikum.nama as periode_nama'
+                'periode_praktikum.nama as periode_nama',
+                'sesi_praktikum.id as sesi_id',
+                'sesi_praktikum.nama as sesi_nama',
+                'sesi_praktikum.hari',
+                'sesi_praktikum.waktu_mulai',
+                'sesi_praktikum.waktu_selesai'
             ])
                 ->join('praktikum_praktikan', 'praktikum.id', '=', 'praktikum_praktikan.praktikum_id')
                 ->leftJoin('periode_praktikum', 'praktikum.periode_praktikum_id', '=', 'periode_praktikum.id')
+                ->leftJoin('sesi_praktikum', 'praktikum_praktikan.sesi_praktikum_id', '=', 'sesi_praktikum.id') // Join ke sesi_praktikum
                 ->where('praktikum_praktikan.praktikan_id', $authPraktikan->id)
                 ->when($search, function ($query, $search) {
                     $query->where('praktikum.nama', 'like', "%{$search}%");
@@ -117,6 +124,13 @@ class PraktikanPagesController extends Controller
                         'tahun' => $item->tahun,
                         'terverifikasi' => (bool) $item->terverifikasi,
                         'periode' => $item->periode_nama ? ['nama' => $item->periode_nama] : null,
+                        'sesi' => $item->sesi_id ? [
+                            'id' => $item->sesi_id,
+                            'nama' => $item->sesi_nama,
+                            'hari' => $item->hari,
+                            'waktu_mulai' => $item->waktu_mulai,
+                            'waktu_selesai' => $item->waktu_selesai,
+                        ] : null,
                     ];
                 }),
         ]);
@@ -129,17 +143,49 @@ class PraktikanPagesController extends Controller
         }
 
         return Inertia::render('Praktikan/PraktikanPraktikumCreatePage', [
-            'jenisPraktikums' => JenisPraktikum::with(['praktikum' => function ($query) use ($authPraktikan) {
-                $query->where('status', true)
-                ->with(['periode'])
-                    ->select([
-                        'praktikum.*',
-                        DB::raw("(NOT EXISTS (
-                  SELECT 1 FROM praktikum_praktikan
-                  WHERE praktikum_praktikan.praktikum_id = praktikum.id
-                  AND praktikum_praktikan.praktikan_id = '$authPraktikan->id'
-              )) as available")]);
-            }])->get()
+            'jenisPraktikums' => JenisPraktikum::with([
+                'praktikum' => function ($query) use ($authPraktikan) {
+                    $query->where('status', true)
+                        ->with([
+                            'periode',
+                            'sesi' => function ($sesiQuery) {
+                                $sesiQuery->select([
+                                    'id',
+                                    'nama',
+                                    'hari',
+                                    'waktu_mulai',
+                                    'waktu_selesai',
+                                    'kuota',
+                                    'praktikum_id',
+                                    DB::raw('
+                                    (kuota - (
+                                        SELECT COUNT(*)
+                                        FROM praktikum_praktikan
+                                        WHERE praktikum_praktikan.sesi_praktikum_id = sesi_praktikum.id
+                                    )) as sisa_kuota
+                                ')
+                                ]);
+                            }
+                        ])
+                        ->select([
+                            'id',
+                            'nama',
+                            'jenis_praktikum_id',
+                            'periode_praktikum_id',
+                            'tahun',
+                            'status',
+                            DB::raw("
+                            (NOT EXISTS (
+                                SELECT 1
+                                FROM praktikum_praktikan
+                                WHERE praktikum_praktikan.praktikum_id = praktikum.id
+                                AND praktikum_praktikan.praktikan_id = '$authPraktikan->id'
+                            )) as available
+                        ")
+                        ]);
+                }
+            ])->get(),
+            'currentDate' => fn() => Carbon::now('Asia/Jakarta')
         ]);
     }
 }
