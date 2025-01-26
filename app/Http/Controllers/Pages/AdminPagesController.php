@@ -145,7 +145,7 @@ class AdminPagesController extends Controller
                 'periode:id,nama',
                 'pertemuan:id,praktikum_id,nama',
                 'pertemuan.modul:id,pertemuan_id,nama,topik',
-                'sesi:id,nama,waktu'
+                'sesi:id,nama,kuota,hari,waktu_mulai,waktu_selesai,praktikum_id'
             ])->findOrFail($idParam);
 
             return Inertia::render('Admin/AdminPraktikumUpdatePage', [
@@ -161,6 +161,7 @@ class AdminPagesController extends Controller
                 ]),
                 'jenisPraktikums' => fn() => JenisPraktikum::select('id', 'nama')->orderBy('created_at', 'desc')->get(),
                 'periodePraktikums' => fn() => PeriodePraktikum::select('id', 'nama')->get(),
+                'currentDate' => fn () => Carbon::now('Asia/Jakarta'),
             ]);
         } catch (QueryException $exception) {
             abort(500);

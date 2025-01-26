@@ -1,26 +1,51 @@
 import { Label } from "@/components/ui/label";
 import { YearPicker } from "@/components/year-picker";
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { Head, router } from "@inertiajs/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn, romanToNumber } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowBigLeft, BookMarked, Check, Copy, Hash, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
+import {
+    ArrowBigLeft,
+    BookMarked,
+    Check, Clock,
+    Copy,
+    Hash,
+    Loader2,
+    MoveRight,
+    Pencil,
+    Plus,
+    Trash2, UsersRound,
+    X
+} from "lucide-react";
 import { z } from "zod";
 import axios, { AxiosError } from "axios";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { IconSwitch } from "@/components/icon-switch";
 import { Separator } from "@/components/ui/separator";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, } from "@/components/ui/drawer";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { _NamaHari } from "@/lib/StaticDataLib";
+import { TimePickerInput } from "@/components/time-picker-input";
+import * as React from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { format, parse } from "date-fns";
 
 type IDNama = {
     id: string;
     nama: string;
+};
+type Sesi = {
+    id: string;
+    nama: string;
+    kuota: number | null;
+    isUnlimited: boolean;
+    hari: string;
+    waktu_mulai: string;
+    waktu_selesai: string;
+    praktikum_id: string;
 };
 type Modul = {
     id: string;
@@ -39,12 +64,13 @@ type Praktikum = {
         nama: string;
         modul: Modul[];
     }[];
-    sesi: IDNama[];
+    sesi: Sesi[];
 };
-export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, periodePraktikums }: {
+export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, periodePraktikums, currentDate }: {
     praktikum: Praktikum;
     jenisPraktikums: IDNama[];
     periodePraktikums: IDNama[];
+    currentDate: string;
 }) {
     const { toast } = useToast();
     type UpdateForm = {
@@ -61,6 +87,7 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
         setClipboard(value);
         navigator.clipboard.writeText(value);
     };
+
     const [ updateForm, setUpdateForm ] = useState<UpdateForm>({
         nama: praktikum.nama,
         jenis_praktikum_id: praktikum.jenis.id,
@@ -164,11 +191,21 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
 
     type CreateSesi = {
         nama: string;
+        kuota: string;
+        isUnlimited: boolean;
+        hari: string;
+        waktu_mulai: Date | null;
+        waktu_selesai: Date | null;
         onSubmit: boolean;
     };
     type UpdateSesi = {
         id: string;
         nama: string;
+        kuota: string;
+        isUnlimited: boolean;
+        hari: string;
+        waktu_mulai: Date | null;
+        waktu_selesai: Date | null;
         onSubmit: boolean;
     };
     type DeleteSesi = {
@@ -177,13 +214,39 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
         validation: string;
         onSubmit: boolean;
     };
+    const mapToUpdateSesi = (data: Sesi): UpdateSesi => {
+        return {
+            id: data.id,
+            nama: data.nama,
+            kuota: data.kuota === null ? '' : data.kuota.toString(),
+            isUnlimited: data.kuota === null,
+            hari: data.hari,
+            waktu_mulai: data.waktu_mulai
+                ? parse(data.waktu_mulai, 'HH:mm:ss', new Date())
+                : null,
+            waktu_selesai: data.waktu_selesai
+                ? parse(data.waktu_selesai, 'HH:mm:ss', new Date())
+                : null,
+            onSubmit: false,
+        };
+    };
     const createSesiInit: CreateSesi = {
-        nama: '',
+        nama: 'Sesi ',
+        kuota: '',
+        isUnlimited: false,
+        hari: '',
+        waktu_mulai: null,
+        waktu_selesai: null,
         onSubmit: false,
     };
     const updateSesiInit: UpdateSesi = {
         id: '',
         nama: '',
+        kuota: '',
+        isUnlimited: false,
+        hari: '',
+        waktu_mulai: null,
+        waktu_selesai: null,
         onSubmit: false,
     };
     const deleteSesiInit: DeleteSesi = {
@@ -194,24 +257,28 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
     };
 
     const [ openCreateSesi, setOpenCreateSesi ] = useState(false);
+    const [ openUpdateSesi, setOpenUpdateSesi ] = useState(false);
     const [ openDeleteSesi, setOpenDeleteSesi ] = useState(false);
 
     const [ createSesi, setCreateSesi ] = useState<CreateSesi>(createSesiInit);
     const [ updateSesi, setUpdateSesi ] = useState<UpdateSesi>(updateSesiInit);
     const [ deleteSesi, setDeleteSesi ] = useState<DeleteSesi>(deleteSesiInit);
 
-    const handleCreateSesiSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const parseSesiTime = (time: string) => {
+        return parse(time, 'HH:mm:ss', new Date(currentDate));
+    };
+    const handleSubmitCreateSesi = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setCreateSesi((prevState) => ({ ...prevState, onSubmit: true }));
-        const { nama } = createSesi;
-        const pertemuanSchema = z.object({
+        const { nama, kuota, isUnlimited, hari, waktu_mulai, waktu_selesai } = createSesi;
+        const sesiSchema = z.object({
             nama: z.string({ message: 'Format nama tidak valid! '}).min(1, { message: 'Nama Sesi Praktikum wajib diisi!' }),
         });
-        const pertemuanParse = pertemuanSchema.safeParse({
+        const sesiParse = sesiSchema.safeParse({
             nama: nama
         });
-        if (!pertemuanParse.success) {
-            const errMsg = pertemuanParse.error.issues[0]?.message;
+        if (!sesiParse.success) {
+            const errMsg = sesiParse.error.issues[0]?.message;
             toast({
                 variant: "destructive",
                 title: "Periksa kembali Input anda!",
@@ -223,8 +290,12 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
 
         axios.post<{
             message: string;
-        }>(route('pertemuan.create'), {
+        }>(route('sesi-praktikum.create'), {
             nama: nama,
+            kuota: !isUnlimited ? Number(kuota) : null,
+            hari: hari,
+            waktu_mulai: waktu_mulai,
+            waktu_selesai: waktu_selesai,
             praktikum_id: praktikum.id
         })
             .then((res) => {
@@ -250,49 +321,49 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
                 });
             });
     };
-    const handleOpenUpdateSesi = (pertemuan: IDNama) => {
-        setUpdateSesi((prevState) => ({
-            ...prevState,
-            id: pertemuan.id,
-            nama: pertemuan.nama,
-        }));
+    const handleOpenUpdateSesi = (sesi: Sesi) => {
+        setUpdateSesi(mapToUpdateSesi(sesi));
+        setOpenUpdateSesi(true);
     };
-    const handleChangeUpdateSesi = (key: keyof UpdateSesi, value: string | boolean) => {
-        setUpdateSesi((prevState) => ({ ...prevState, [key]: value }));
-    };
-    const handleSubmitUpdateSesi = () => {
-        setUpdateSesi((prevState) => ({
-            ...prevState,
-            onSubmit: true
-        }));
-        const { id, nama } = updateSesi;
-        const updateSchema = z.object({
-            id: z.string({ message: 'Format Modul tidak valid! '}).min(1, { message: 'Format Sesi Praktikum tidak valid!' }),
-            nama: z.string({ message: 'Format nama Modul tidak valid! '}).min(1, { message: 'Nama Sesi Praktikum wajib diisi!' }),
+    const handleCancelUpdateSesi = () => {
+        setUpdateSesi(updateSesiInit);
+        setOpenUpdateSesi(false);
+    }
+    const handleSubmitUpdateSesi = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setUpdateSesi((prevState) => ({ ...prevState, onSubmit: true }));
+        const { id, nama, kuota, isUnlimited, hari, waktu_mulai, waktu_selesai } = updateSesi;
+        const sesiSchema = z.object({
+            nama: z.string({ message: 'Format nama tidak valid! '}).min(1, { message: 'Nama Sesi Praktikum wajib diisi!' }),
         });
-        const updateParse = updateSchema.safeParse({
-            id: id,
-            nama: nama,
+        const sesiParse = sesiSchema.safeParse({
+            nama: nama
         });
-        if (!updateParse.success) {
-            const errMsg = updateParse.error.issues[0]?.message;
+        if (!sesiParse.success) {
+            const errMsg = sesiParse.error.issues[0]?.message;
             toast({
                 variant: "destructive",
                 title: "Periksa kembali Input anda!",
                 description: errMsg,
             });
-            setUpdateSesi((prevState) => ({ ...prevState, onSubmit: false }));
+            setCreateSesi((prevState) => ({ ...prevState, onSubmit: false }));
             return;
         }
 
         axios.post<{
             message: string;
-        }>(route('pertemuan.update'), {
+        }>(route('sesi-praktikum.update'), {
             id: id,
             nama: nama,
+            kuota: !isUnlimited ? Number(kuota) : null,
+            hari: hari,
+            waktu_mulai: waktu_mulai,
+            waktu_selesai: waktu_selesai,
+            praktikum_id: praktikum.id
         })
             .then((res) => {
                 setUpdateSesi(updateSesiInit);
+                setOpenUpdateSesi(false);
                 toast({
                     variant: 'default',
                     className: 'bg-green-500 text-white',
@@ -313,15 +384,15 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
                 });
             });
     };
-    const handleOpenDeleteSesi = (pertemuan: IDNama) => {
+    const handleOpenDeleteSesi = (sesi: IDNama) => {
         setDeleteSesi((prevState) => ({
             ...prevState,
-            id: pertemuan.id,
-            nama: pertemuan.nama,
+            id: sesi.id,
+            nama: sesi.nama,
         }));
         setOpenDeleteSesi(true);
     };
-    const handleDeleteSesiSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmitDeleteSesi = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setDeleteSesi((prevState) => ({ ...prevState, onSubmit: true }));
         const { id } = deleteSesi;
@@ -344,7 +415,7 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
 
         axios.post<{
             message: string;
-        }>(route('pertemuan.delete'), {
+        }>(route('sesi-praktikum.delete'), {
             id: id,
         })
             .then((res) => {
@@ -409,7 +480,7 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
     const [ updatePertemuan, setUpdatePertemuan ] = useState<UpdatePertemuan>(updatePertemuanInit);
     const [ deletePertemuan, setDeletePertemuan ] = useState<DeletePertemuan>(deletePertemuanInit);
 
-    const handleCreatePertemuanSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmitCreatePertemuan = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setCreatePertemuan((prevState) => ({ ...prevState, onSubmit: true }));
         const { nama } = createPertemuan;
@@ -530,7 +601,7 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
         }));
         setOpenDeletePertemuan(true);
     };
-    const handleDeletePertemuanSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmitDeletePertemuan = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setDeletePertemuan((prevState) => ({ ...prevState, onSubmit: true }));
         const { id } = deletePertemuan;
@@ -622,12 +693,20 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
     const [ createModul, setCreateModul ] = useState<CreateModul>(createModulInit);
     const [ updateModul, setUpdateModul ] = useState<UpdateModul>(updateModulInit);
     const [ deleteModul, setDeleteModul ] = useState<DeleteModul>(deleteModulInit);
+    const createSesiMulaiHoursRef = useRef<HTMLInputElement>(null);
+    const createSesiMulaiMinuteRef = useRef<HTMLInputElement>(null);
+    const createSesiSelesaiHoursRef = useRef<HTMLInputElement>(null);
+    const createSesiSelesaiMinuteRef = useRef<HTMLInputElement>(null);
+    const updateSesiMulaiHoursRef = useRef<HTMLInputElement>(null);
+    const updateSesiMulaiMinuteRef = useRef<HTMLInputElement>(null);
+    const updateSesiSelesaiHoursRef = useRef<HTMLInputElement>(null);
+    const updateSesiSelesaiMinuteRef = useRef<HTMLInputElement>(null);
 
     const handleOpenCreateModul = (pertemuan_id: string) => {
         setOpenCreateModul(true);
         setCreateModul((prevState) => ({ ...prevState, pertemuan_id: pertemuan_id }));
     };
-    const handleCreateModulSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmitCreateModul = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setCreateModul((prevState) => ({ ...prevState, onSubmit: true }));
         const { nama, topik, pertemuan_id } = createModul;
@@ -761,7 +840,7 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
         }));
         setOpenDeleteModul(true);
     };
-    const handleDeleteModulSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmitDeleteModul = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setDeleteModul((prevState) => ({ ...prevState, onSubmit: true }));
         const { id } = deleteModul;
@@ -811,7 +890,8 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
             });
     };
 
-    console.log(praktikum)
+    console.log(praktikum);
+    console.log(updateSesi);
 
     return (
         <>
@@ -914,6 +994,7 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
                         }
                     </Button>
                 </form>
+
                 <Separator className="!my-8" />
 
                 <CardContent className="p-0">
@@ -930,56 +1011,30 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
                     </div>
                     <div className="space-y-4">
                         { praktikum.sesi.length > 0 ? praktikum.sesi.map((sesi) => (
-                            <Card key={ sesi.id } className="rounded-sm shadow-none border-muted-foreground/40">
+                            <Card key={ sesi.id } className="rounded-sm shadow-none border-muted-foreground/40 !py-1">
                                 <div className="flex flex-row gap-2 justify-between">
-                                    <CardHeader>
-                                        { updateSesi.id === sesi.id ? (
-                                            <Input value={ updateSesi.nama } onChange={(event) => handleChangeUpdateSesi('nama', event.target.value)} className="font-semibold" autoFocus={true} />
-                                        ) : (
-                                            <CardTitle className="flex items-center justify-between">
-                                                <span>{ sesi.nama }</span>
-                                            </CardTitle>
-                                        )}
-                                        <CardDescription className="flex items-center gap-0">
-                                            <Hash width={ 15 }/>
-                                            <div className="flex items-center gap-1">
-                                                <p className="text-xs line-clamp-1 text-ellipsis">{ sesi.id }</p>
-                                                <Button variant="ghost" size="icon" className="w-7 h-7" onClick={ () => handleSetClipboard(sesi.id) }>
-                                                    { clipboard === sesi.id
-                                                        ? (
-                                                            <Check width={ 15 }/>
-                                                        ) : (
-                                                            <Copy width={ 15 }/>
-                                                        )
-                                                    }
-                                                </Button>
+                                    <div className="flex flex-col px-6 py-3.5">
+                                        <CardTitle className="flex items-center justify-between">
+                                            <span>{ sesi.nama }</span>
+                                        </CardTitle>
+                                        <div className="text-muted-foreground text-sm font-medium space-y-1.5 !mt-2.5 *:flex *:gap-2">
+                                            <div>
+                                                <UsersRound size={20} />
+                                                <p>{ sesi.kuota ? `Kuota ${sesi.kuota} orang` : 'Kuota Tidak terbatas' }</p>
                                             </div>
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <div className="p-6 space-x-1">
-                                        {updateSesi.id === sesi.id ? (
-                                            <>
-                                                <Button className="bg-green-600 hover:bg-green-600/80" disabled={updateSesi.id === sesi.id && updateSesi.nama === sesi.nama } onClick={handleSubmitUpdateSesi}>
-                                                    { updateSesi.onSubmit ? (
-                                                        <Loader2 className="animate-spin" />
-                                                    ) : (
-                                                        <Check className="text-white" />
-                                                    )}
-                                                </Button>
-                                                <Button variant="ghost" className="hover:bg-red-300/70" onClick={() => setUpdateSesi(updateSesiInit)}>
-                                                    <X className="text-red-600" />
-                                                </Button>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Button size="icon" variant="ghost" className="group hover:bg-red-500/85" onClick={() => handleOpenDeleteSesi({ id: sesi.id, nama: sesi.nama })}>
-                                                    <Trash2 className="text-red-600 group-hover:text-white transition-colors" />
-                                                </Button>
-                                                <Button size="icon" variant="ghost" className="group hover:bg-blue-500/85" onClick={() => handleOpenUpdateSesi({ id: sesi.id, nama: sesi.nama })} disabled={!!updateSesi.id}>
-                                                    <Pencil className="text-blue-600 group-hover:text-white transition-colors" />
-                                                </Button>
-                                            </>
-                                        )}
+                                            <div>
+                                                <Clock size={20} />
+                                                <p>{ sesi.hari }, { format(parseSesiTime(sesi.waktu_mulai), 'HH:mm') } - { format(parseSesiTime(sesi.waktu_selesai), 'HH:mm') }</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="p-6 space-x-1 content-center">
+                                        <Button size="icon" variant="ghost" className="group hover:bg-red-500/85" onClick={() => handleOpenDeleteSesi({ id: sesi.id, nama: sesi.nama })}>
+                                            <Trash2 className="text-red-600 group-hover:text-white transition-colors" />
+                                        </Button>
+                                        <Button size="icon" variant="ghost" className="group hover:bg-blue-500/85" onClick={() => handleOpenUpdateSesi(sesi)} disabled={!!updateSesi.id}>
+                                            <Pencil className="text-blue-600 group-hover:text-white transition-colors" />
+                                        </Button>
                                     </div>
                                 </div>
                             </Card>
@@ -993,6 +1048,8 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
                         ) }
                     </div>
                 </CardContent>
+
+                <Separator className="!my-8" />
 
                 <CardContent className="p-0">
                     <div className="flex items-center justify-between mb-2">
@@ -1150,7 +1207,7 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
                                 Sesi praktikum seperti "Sesi 1"
                             </AlertDialogDescription>
                         </AlertDialogHeader>
-                        <form className={ cn("grid items-start gap-4") } onSubmit={ handleCreateSesiSubmit }>
+                        <form className={ cn("grid items-start gap-4") } onSubmit={ handleSubmitCreateSesi }>
                             <div className="grid gap-2">
                                 <Label htmlFor="nama">Nama Sesi Praktikum</Label>
                                 <Input
@@ -1164,10 +1221,238 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
                                     })) }
                                 />
                             </div>
-                            <Button type="submit" disabled={createSesi.onSubmit}>
+                            <div className="space-y-1.5">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="kuota">Kuota</Label>
+                                    <Input
+                                        type="number"
+                                        name="kuota"
+                                        id="kuota"
+                                        value={ createSesi.kuota }
+                                        onChange={ (event) => setCreateSesi((prevState) => ({ ...prevState, kuota: event.target.value })) }
+                                        disabled={createSesi.isUnlimited}
+                                        placeholder="0"
+                                    />
+                                </div>
+                                <div className="items-center flex gap-1.5">
+                                    <Checkbox id="unlimited-kuota" onCheckedChange={(checked) => setCreateSesi((prevState) => ({ ...prevState, isUnlimited: !!checked, kuota: !!(checked) ? '' : prevState.kuota })) } />
+                                    <Label htmlFor="unlimited-kuota" className="text-sm opacity-80">Kuota tidak terbatas</Label>
+                                </div>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Hari Sesi Praktikum</Label>
+                                <Select value={ createSesi.hari } onValueChange={ (val) => setCreateSesi((prevState) => ({ ...prevState, hari: val })) }>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Pilih Hari"/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        { _NamaHari.map((hari, index) => ((
+                                            <SelectItem key={ index } value={ hari }>{ hari }</SelectItem>
+                                        ))) }
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Waktu Sesi Praktikum <span className="text-xs font-medium text-red-500">*Ketik Jam & menit</span></Label>
+                                <div className="flex items-end gap-2">
+                                    <div className="grid gap-1 text-center">
+                                        <Label htmlFor="hours" className="text-xs">
+                                            Jam
+                                        </Label>
+                                        <TimePickerInput
+                                            picker="hours"
+                                            date={ createSesi.waktu_mulai ?? undefined }
+                                            setDate={ (date) => setCreateSesi((prevState) => ({
+                                                ...prevState,
+                                                waktu_mulai: date ?? null
+                                            })) }
+                                            ref={ createSesiMulaiHoursRef }
+                                            onRightFocus={ () => createSesiMulaiMinuteRef.current?.focus() }
+                                        />
+                                    </div>
+                                    <p className="mb-1 font-bold">
+                                        :
+                                    </p>
+                                    <div className="grid gap-1 text-center">
+                                        <Label htmlFor="minutes" className="text-xs">
+                                            Menit
+                                        </Label>
+                                        <TimePickerInput
+                                            picker="minutes"
+                                            date={ createSesi.waktu_mulai ?? undefined }
+                                            setDate={ (date) => setCreateSesi((prevState) => ({
+                                                ...prevState,
+                                                waktu_mulai: date ?? null
+                                            })) }
+                                            ref={ createSesiMulaiMinuteRef }
+                                        />
+                                    </div>
+                                    <div className="flex h-10 items-center">
+                                        <MoveRight size={ 30 } className="mx-2"/>
+                                    </div>
+                                    <div className="grid gap-1 text-center">
+                                        <Label htmlFor="hours" className="text-xs">
+                                            Jam
+                                        </Label>
+                                        <TimePickerInput
+                                            picker="hours"
+                                            date={ createSesi.waktu_selesai ?? undefined }
+                                            setDate={ (date) => setCreateSesi((prevState) => ({
+                                                ...prevState,
+                                                waktu_selesai: date ?? null
+                                            })) }
+                                            ref={ createSesiSelesaiHoursRef }
+                                            onRightFocus={ () => createSesiSelesaiMinuteRef.current?.focus() }
+                                        />
+                                    </div>
+                                    <p className="mb-1 font-bold">
+                                        :
+                                    </p>
+                                    <div className="grid gap-1 text-center">
+                                        <Label htmlFor="minutes" className="text-xs">
+                                            Menit
+                                        </Label>
+                                        <TimePickerInput
+                                            picker="minutes"
+                                            date={ createSesi.waktu_selesai ?? undefined }
+                                            setDate={ (date) => setCreateSesi((prevState) => ({
+                                                ...prevState,
+                                                waktu_selesai: date ?? null
+                                            })) }
+                                            ref={ createSesiSelesaiMinuteRef }
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <Button type="submit" disabled={ createSesi.onSubmit }>
                                 { createSesi.onSubmit
                                     ? (
-                                        <>Memproses <Loader2 className="animate-spin" /></>
+                                        <>Memproses <Loader2 className="animate-spin"/></>
+                                    ) : (
+                                        <span>Simpan</span>
+                                    )
+                                }
+                            </Button>
+                        </form>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                    </AlertDialogContent>
+                </AlertDialog>
+                <AlertDialog open={ openUpdateSesi } onOpenChange={ setOpenUpdateSesi }>
+                    <AlertDialogContent className="max-w-[90%] sm:max-w-[425px] rounded" onOpenAutoFocus={ (e) => e.preventDefault() }>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                Update Sesi Praktikum
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Anda akan mengubah data dari { updateSesi.nama }
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <form className={ cn("grid items-start gap-4") } onSubmit={ handleSubmitUpdateSesi }>
+                            <div className="grid gap-2">
+                                <Label htmlFor="nama">Nama Sesi Praktikum</Label>
+                                <Input
+                                    type="text"
+                                    name="nama"
+                                    id="nama"
+                                    value={ updateSesi.nama }
+                                    onChange={ (event) => setUpdateSesi((prevState) => ({ ...prevState, nama: event.target.value })) }
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="kuota">Kuota</Label>
+                                    <Input
+                                        type="number"
+                                        name="kuota"
+                                        id="kuota"
+                                        value={ updateSesi.kuota }
+                                        onChange={ (event) => setUpdateSesi((prevState) => ({ ...prevState, kuota: event.target.value })) }
+                                        disabled={ updateSesi.isUnlimited }
+                                        placeholder="0"
+                                    />
+                                </div>
+                                <div className="items-center flex gap-1.5">
+                                    <Checkbox id="unlimited-kuota-update" checked={ updateSesi.isUnlimited } onCheckedChange={(checked) => setUpdateSesi((prevState) => ({ ...prevState, isUnlimited: !!checked, kuota: !!(checked) ? '' : prevState.kuota })) } />
+                                    <Label htmlFor="unlimited-kuota-update" className="text-sm opacity-80">Kuota tidak terbatas</Label>
+                                </div>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Hari Sesi Praktikum</Label>
+                                <Select value={ updateSesi.hari } onValueChange={ (val) => setUpdateSesi((prevState) => ({ ...prevState, hari: val })) }>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Pilih Hari"/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        { _NamaHari.map((hari, index) => ((
+                                            <SelectItem key={ index } value={ hari }>{ hari }</SelectItem>
+                                        ))) }
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Waktu Sesi Praktikum <span className="text-xs font-medium text-red-500">*Ketik Jam & menit</span></Label>
+                                <div className="flex items-end gap-2">
+                                    <div className="grid gap-1 text-center">
+                                        <Label htmlFor="hours" className="text-xs">
+                                            Jam
+                                        </Label>
+                                        <TimePickerInput
+                                            picker="hours"
+                                            date={ updateSesi.waktu_mulai ?? undefined }
+                                            setDate={ (date) => setUpdateSesi((prevState) => ({ ...prevState, waktu_mulai: date ?? null })) }
+                                            ref={ updateSesiMulaiHoursRef }
+                                            onRightFocus={ () => updateSesiMulaiMinuteRef.current?.focus() }
+                                        />
+                                    </div>
+                                    <p className="mb-1 font-bold">
+                                        :
+                                    </p>
+                                    <div className="grid gap-1 text-center">
+                                        <Label htmlFor="minutes" className="text-xs">
+                                            Menit
+                                        </Label>
+                                        <TimePickerInput
+                                            picker="minutes"
+                                            date={ updateSesi.waktu_mulai ?? undefined }
+                                            setDate={ (date) => setUpdateSesi((prevState) => ({ ...prevState, waktu_mulai: date ?? null })) }
+                                            ref={ updateSesiMulaiMinuteRef }
+                                        />
+                                    </div>
+                                    <div className="flex h-10 items-center">
+                                        <MoveRight size={ 30 } className="mx-2"/>
+                                    </div>
+                                    <div className="grid gap-1 text-center">
+                                        <Label htmlFor="hours" className="text-xs">
+                                            Jam
+                                        </Label>
+                                        <TimePickerInput
+                                            picker="hours"
+                                            date={ updateSesi.waktu_selesai ?? undefined }
+                                            setDate={ (date) => setUpdateSesi((prevState) => ({ ...prevState, waktu_selesai: date ?? null })) }
+                                            ref={ updateSesiSelesaiHoursRef }
+                                            onRightFocus={ () => updateSesiSelesaiMinuteRef.current?.focus() }
+                                        />
+                                    </div>
+                                    <p className="mb-1 font-bold">
+                                        :
+                                    </p>
+                                    <div className="grid gap-1 text-center">
+                                        <Label htmlFor="minutes" className="text-xs">
+                                            Menit
+                                        </Label>
+                                        <TimePickerInput
+                                            picker="minutes"
+                                            date={ updateSesi.waktu_selesai ?? undefined }
+                                            setDate={ (date) => setUpdateSesi((prevState) => ({ ...prevState, waktu_selesai: date ?? null })) }
+                                            ref={ updateSesiSelesaiMinuteRef }
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <Button type="submit" disabled={ updateSesi.onSubmit }>
+                                { updateSesi.onSubmit
+                                    ? (
+                                        <>Memproses <Loader2 className="animate-spin"/></>
                                     ) : (
                                         <span>Simpan</span>
                                     )
@@ -1178,25 +1463,26 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
                     </AlertDialogContent>
                 </AlertDialog>
                 <AlertDialog open={ openDeleteSesi } onOpenChange={ setOpenDeleteSesi }>
-                    <AlertDialogContent className="max-w-[90%] sm:max-w-[425px] rounded" onOpenAutoFocus={ (e) => e.preventDefault() }>
+                    <AlertDialogContent className="max-w-[90%] sm:max-w-[425px] rounded"
+                                        onOpenAutoFocus={ (e) => e.preventDefault() }>
                         <AlertDialogHeader>
                             <AlertDialogTitle>
                                 Hapus Sesi
                             </AlertDialogTitle>
                             <AlertDialogDescription className="flex flex-col gap-0.5">
-                                    <span className="text-red-600 font-bold">
-                                        Anda akan menghapus Sesi!
-                                    </span>
+                                <span className="text-red-600 font-bold">
+                                    Anda akan menghapus Sesi!
+                                </span>
                                 <span className="*:text-red-600">
-                                        Semua data Modul,Kuis,Nilai Praktikan yang terkaitdengan <strong>"{ deleteSesi.nama }"</strong> akan juga dihapus
-                                    </span>
+                                    Semua data Modul,Kuis,Nilai Praktikan yang terkaitdengan <strong>"{ deleteSesi.nama }"</strong> akan juga dihapus
+                                </span>
                                 <br/>
                                 <span className="text-red-600">
-                                        Data yang terhapus tidak akan bisa dikembalikan! harap gunakan dengan hati-hati
-                                    </span>
+                                    Data yang terhapus tidak akan bisa dikembalikan! harap gunakan dengan hati-hati
+                                </span>
                             </AlertDialogDescription>
                         </AlertDialogHeader>
-                        <form className={ cn("grid items-start gap-4") } onSubmit={ handleDeleteSesiSubmit }>
+                        <form className={ cn("grid items-start gap-4") } onSubmit={ handleSubmitDeleteSesi }>
                             <div className="grid gap-2">
                                 <Label htmlFor="validation">Validasi aksi anda</Label>
                                 <Input
@@ -1251,7 +1537,7 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
                                 Pertemuan praktikum seperti "Pertemuan 1"
                             </AlertDialogDescription>
                         </AlertDialogHeader>
-                        <form className={ cn("grid items-start gap-4") } onSubmit={ handleCreatePertemuanSubmit }>
+                        <form className={ cn("grid items-start gap-4") } onSubmit={ handleSubmitCreatePertemuan }>
                             <div className="grid gap-2">
                                 <Label htmlFor="nama">Nama Pertemuan Praktikum</Label>
                                 <Input
@@ -1297,7 +1583,7 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
                                 </span>
                             </AlertDialogDescription>
                         </AlertDialogHeader>
-                        <form className={ cn("grid items-start gap-4") } onSubmit={ handleDeletePertemuanSubmit }>
+                        <form className={ cn("grid items-start gap-4") } onSubmit={ handleSubmitDeletePertemuan }>
                             <div className="grid gap-2">
                                 <Label htmlFor="validation">Validasi aksi anda</Label>
                                 <Input
@@ -1342,251 +1628,120 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
                 {/*END OF PERTEMUAN MODALS*/}
 
                 {/*START OF MODUL MODALS*/}
-                { useIsMobile() ? (
-                    <Drawer open={openCreateModul} onOpenChange={setOpenCreateModul} dismissible={false}>
-                        <DrawerContent onOpenAutoFocus={(e) => e.preventDefault()}>
-                            <DrawerHeader className="text-left">
-                                <DrawerTitle>
-                                    Tambah Modul { praktikum.pertemuan.find((pertemuan) => pertemuan.id === createModul.pertemuan_id)?.nama ?? ''}
-                                </DrawerTitle>
-                                <DrawerDescription>
-                                    <span>Modul praktikum seperti <strong>"Modul 1"</strong></span>
-                                    <span>Topik Modul seperti <strong>"COMMAND LINE INTERFAFACE"</strong></span>
-                                </DrawerDescription>
-                            </DrawerHeader>
-                            <div className="p-5">
-                                <form className={ cn("grid items-start gap-4") } onSubmit={ handleCreateModulSubmit }>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="nama">Nama Modul</Label>
-                                        <Input
-                                            type="text"
-                                            name="nama"
-                                            id="nama"
-                                            value={ createModul.nama }
-                                            onChange={ (event) => setCreateModul((prevState) => ({
-                                                ...prevState,
-                                                nama: event.target.value
-                                            })) }
-                                        />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="nama">Topik Modul</Label>
-                                        <Input
-                                            type="text"
-                                            name="topik"
-                                            id="topik"
-                                            value={ createModul.topik }
-                                            onChange={ (event) => setCreateModul((prevState) => ({
-                                                ...prevState,
-                                                topik: event.target.value
-                                            })) }
-                                        />
-                                    </div>
-                                    <Button type="submit" disabled={createModul.onSubmit || !createModul.nama || !createModul.topik || createModul.nama === createModulInit.nama}>
-                                        { createModul.onSubmit
-                                            ? (
-                                                <>Memproses <Loader2 className="animate-spin" /></>
-                                            ) : (
-                                                <span>Simpan</span>
-                                            )
-                                        }
-                                    </Button>
-                                </form>
+                <AlertDialog open={ openCreateModul } onOpenChange={ setOpenCreateModul }>
+                    <AlertDialogContent className="max-w-[90%] sm:max-w-[425px] rounded" onOpenAutoFocus={ (e) => e.preventDefault() }>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                Tambah Modul { praktikum.pertemuan.find((pertemuan) => pertemuan.id === createModul.pertemuan_id)?.nama ?? ''}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="flex flex-col gap-0">
+                                <span>Modul praktikum seperti <strong>"Modul 1"</strong></span>
+                                <span>Topik Modul seperti <strong>"COMMAND LINE INTERFAFACE"</strong></span>
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <form className={ cn("grid items-start gap-4") } onSubmit={ handleSubmitCreateModul }>
+                            <div className="grid gap-2">
+                                <Label htmlFor="nama">Nama Modul</Label>
+                                <Input
+                                    type="text"
+                                    name="nama"
+                                    id="nama"
+                                    value={ createModul.nama }
+                                    onChange={ (event) => setCreateModul((prevState) => ({
+                                        ...prevState,
+                                        nama: event.target.value
+                                    })) }
+                                />
                             </div>
-                            <DrawerFooter className="pt-2">
-                                <DrawerClose asChild>
-                                    <Button
-                                        variant="outline"
-                                        onClick={ () => {
-                                            setCreateModul(createModulInit);
-                                            setOpenCreateModul(false);
-                                        } }
-                                    >
-                                        Batal
-                                    </Button>
-                                </DrawerClose>
-                            </DrawerFooter>
-                        </DrawerContent>
-                    </Drawer>
-                ) : (
-                    <AlertDialog open={ openCreateModul } onOpenChange={ setOpenCreateModul }>
-                        <AlertDialogContent className="sm:max-w-[425px]" onOpenAutoFocus={ (e) => e.preventDefault() }>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                    Tambah Modul { praktikum.pertemuan.find((pertemuan) => pertemuan.id === createModul.pertemuan_id)?.nama ?? ''}
-                                </AlertDialogTitle>
-                                <AlertDialogDescription className="flex flex-col gap-0">
-                                    <span>Modul praktikum seperti <strong>"Modul 1"</strong></span>
-                                    <span>Topik Modul seperti <strong>"COMMAND LINE INTERFAFACE"</strong></span>
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <form className={ cn("grid items-start gap-4") } onSubmit={ handleCreateModulSubmit }>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="nama">Nama Modul</Label>
-                                    <Input
-                                        type="text"
-                                        name="nama"
-                                        id="nama"
-                                        value={ createModul.nama }
-                                        onChange={ (event) => setCreateModul((prevState) => ({
-                                            ...prevState,
-                                            nama: event.target.value
-                                        })) }
-                                    />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="nama">Topik Modul</Label>
-                                    <Input
-                                        type="text"
-                                        name="topik"
-                                        id="topik"
-                                        value={ createModul.topik }
-                                        onChange={ (event) => setCreateModul((prevState) => ({
-                                            ...prevState,
-                                            topik: event.target.value
-                                        })) }
-                                    />
-                                </div>
-                                <Button type="submit" disabled={createModul.onSubmit || !createModul.nama || !createModul.topik || createModul.nama === createModulInit.nama}>
-                                    { createModul.onSubmit
-                                        ? (
-                                            <>Memproses <Loader2 className="animate-spin"/></>
-                                        ) : (
-                                            <span>Simpan</span>
-                                        )
-                                    }
-                                </Button>
-                            </form>
-                            <AlertDialogCancel onClick={() => setCreateModul(createModulInit)}>
-                                Batal
-                            </AlertDialogCancel>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                ) }
-
-                { useIsMobile() ? (
-                    <Drawer open={openDeleteModul} onOpenChange={setOpenDeleteModul} dismissible={false}>
-                        <DrawerContent onOpenAutoFocus={(e) => e.preventDefault()}>
-                            <DrawerHeader className="text-left">
-                                <DrawerTitle>
-                                    Hapus Modul
-                                </DrawerTitle>
-                                <DrawerDescription>
-                                    <p className="text-red-600 font-bold">
-                                        Anda akan menghapus Modul!
-                                    </p>
-                                    <p className="*:text-red-600">
-                                        Semua data Nilai Praktikan untuk modul <strong>"{ deleteModul.nama }"</strong> akan juga dihapus
-                                    </p>
-                                    <br/>
-                                    <p className="text-red-600">
-                                        Data yang terhapus tidak akan bisa dikembalikan! harap gunakan dengan hati-hati
-                                    </p>
-                                </DrawerDescription>
-                            </DrawerHeader>
-                            <div className="p-5">
-                                <form className={ cn("grid items-start gap-4") } onSubmit={ handleDeleteModulSubmit }>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="validation">Validasi aksi anda</Label>
-                                        <Input
-                                            type="text"
-                                            name="validation"
-                                            id="validation"
-                                            value={deleteModul.validation}
-                                            placeholder="JARKOM JAYA"
-                                            onChange={(event) =>
-                                                setDeleteModul((prevState) => ({
-                                                    ...prevState,
-                                                    validation: event.target.value,
-                                                }))
-                                            }
-                                            autoComplete="off"
-                                        />
-                                        <p>Ketik <strong>JARKOM JAYA</strong> untuk melanjutkan</p>
-                                    </div>
-                                    <Button type="submit" disabled={deleteModul.onSubmit || deleteModul.validation !== 'JARKOM JAYA'}>
-                                        { deleteModul.onSubmit
-                                            ? (
-                                                <>Memproses <Loader2 className="animate-spin" /></>
-                                            ) : (
-                                                <span>Simpan</span>
-                                            )
-                                        }
-                                    </Button>
-                                </form>
+                            <div className="grid gap-2">
+                                <Label htmlFor="nama">Topik Modul</Label>
+                                <Input
+                                    type="text"
+                                    name="topik"
+                                    id="topik"
+                                    value={ createModul.topik }
+                                    onChange={ (event) => setCreateModul((prevState) => ({
+                                        ...prevState,
+                                        topik: event.target.value
+                                    })) }
+                                />
                             </div>
-                            <DrawerFooter className="pt-2">
-                                <DrawerClose asChild>
-                                    <Button variant="outline" onClick={ () => setOpenDeleteModul(false) }>
-                                        Batal
-                                    </Button>
-                                </DrawerClose>
-                            </DrawerFooter>
-                        </DrawerContent>
-                    </Drawer>
-                ) : (
-                    <AlertDialog open={ openDeleteModul } onOpenChange={ setOpenDeleteModul }>
-                        <AlertDialogContent className="sm:max-w-[425px]" onOpenAutoFocus={ (e) => e.preventDefault() }>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                    Hapus Modul
-                                </AlertDialogTitle>
-                                <AlertDialogDescription className="flex flex-col gap-0.5">
+                            <Button type="submit" disabled={createModul.onSubmit || !createModul.nama || !createModul.topik || createModul.nama === createModulInit.nama}>
+                                { createModul.onSubmit
+                                    ? (
+                                        <>Memproses <Loader2 className="animate-spin"/></>
+                                    ) : (
+                                        <span>Simpan</span>
+                                    )
+                                }
+                            </Button>
+                        </form>
+                        <AlertDialogCancel onClick={() => setCreateModul(createModulInit)}>
+                            Batal
+                        </AlertDialogCancel>
+                    </AlertDialogContent>
+                </AlertDialog>
+                <AlertDialog open={ openDeleteModul } onOpenChange={ setOpenDeleteModul }>
+                    <AlertDialogContent className="max-w-[90%] sm:max-w-[425px] rounded" onOpenAutoFocus={ (e) => e.preventDefault() }>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                Hapus Modul
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="flex flex-col gap-0.5">
                                     <span className="text-red-600 font-bold">
                                         Anda akan menghapus Modul!
                                     </span>
-                                    <span className="*:text-red-600">
+                                <span className="*:text-red-600">
                                         Semua data Nilai Praktikan untuk modul <strong>"{ deleteModul.nama }"</strong> akan juga dihapus
                                     </span>
-                                    <br/>
-                                    <span className="text-red-600">
+                                <br/>
+                                <span className="text-red-600">
                                         Data yang terhapus tidak akan bisa dikembalikan! harap gunakan dengan hati-hati
                                     </span>
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <form className={ cn("grid items-start gap-4") } onSubmit={ handleDeleteModulSubmit }>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="validation">Validasi aksi anda</Label>
-                                    <Input
-                                        type="text"
-                                        name="validation"
-                                        id="validation"
-                                        value={ deleteModul.validation }
-                                        placeholder="JARKOM JAYA"
-                                        onChange={ (event) =>
-                                            setDeleteModul((prevState) => ({
-                                                ...prevState,
-                                                validation: event.target.value,
-                                            }))
-                                        }
-                                        autoComplete="off"
-                                    />
-                                    <p>Ketik <strong>JARKOM JAYA</strong> untuk melanjutkan</p>
-                                </div>
-                                <Button type="submit" disabled={ deleteModul.onSubmit || deleteModul.validation !== 'JARKOM JAYA'}>
-                                    { deleteModul.onSubmit
-                                        ? (
-                                            <>Memproses <Loader2 className="animate-spin" /></>
-                                        ) : (
-                                            <span>Simpan</span>
-                                        )
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <form className={ cn("grid items-start gap-4") } onSubmit={ handleSubmitDeleteModul }>
+                            <div className="grid gap-2">
+                                <Label htmlFor="validation">Validasi aksi anda</Label>
+                                <Input
+                                    type="text"
+                                    name="validation"
+                                    id="validation"
+                                    value={ deleteModul.validation }
+                                    placeholder="JARKOM JAYA"
+                                    onChange={ (event) =>
+                                        setDeleteModul((prevState) => ({
+                                            ...prevState,
+                                            validation: event.target.value,
+                                        }))
                                     }
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    className="hover:bg-red-300/70"
-                                    onClick={() => {
-                                        setDeleteModul(deleteModulInit);
-                                        setOpenDeleteModul(false);
-                                    }}
-                                >
-                                    Batal
-                                </Button>
-                            </form>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                ) }
+                                    autoComplete="off"
+                                />
+                                <p>Ketik <strong>JARKOM JAYA</strong> untuk melanjutkan</p>
+                            </div>
+                            <Button type="submit" disabled={ deleteModul.onSubmit || deleteModul.validation !== 'JARKOM JAYA'}>
+                                { deleteModul.onSubmit
+                                    ? (
+                                        <>Memproses <Loader2 className="animate-spin" /></>
+                                    ) : (
+                                        <span>Simpan</span>
+                                    )
+                                }
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                className="hover:bg-red-300/70"
+                                onClick={() => {
+                                    setDeleteModul(deleteModulInit);
+                                    setOpenDeleteModul(false);
+                                }}
+                            >
+                                Batal
+                            </Button>
+                        </form>
+                    </AlertDialogContent>
+                </AlertDialog>
                 {/*END OF MODUL MODALS*/}
             </AdminLayout>
         </>

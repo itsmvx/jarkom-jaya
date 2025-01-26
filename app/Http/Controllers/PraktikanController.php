@@ -188,7 +188,7 @@ class PraktikanController extends Controller
             'nama' => 'required|string|min:1',
             'npm' => 'required|string|min:1',
             'username' => 'required|string|min:1|unique:praktikan,username,' . $request->id,
-            'jenis_kelamin' => 'nullable|in:Laki-laki,Perempuan',
+            'jenis_kelamin' => 'nullable|in:Laki-Laki,Perempuan',
         ]);
 
         try {

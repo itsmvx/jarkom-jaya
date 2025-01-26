@@ -21,9 +21,7 @@ export default function ErrorPage({ status }: { status: number }) {
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-4">
-            <div className="w-10 h-10 bg-green-500"></div>
-
-            <div className="text-center space-y-6 max-w-md">
+           <div className="text-center space-y-6 max-w-md">
                 <AlertCircle className="w-16 h-16 text-destructive mx-auto" />
                 <h1 className="text-4xl font-bold tracking-tight">{title}</h1>
                 <p className="text-lg text-muted-foreground">{description}</p>

@@ -35,24 +35,14 @@ import { Head, router } from "@inertiajs/react";
 import { z } from "zod";
 import axios, { AxiosError } from "axios";
 import { useToast } from "@/hooks/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
-import {
-    Drawer, DrawerClose,
-    DrawerContent,
-    DrawerDescription, DrawerFooter,
-    DrawerHeader,
-    DrawerTitle,
-    DrawerTrigger
-} from "@/components/ui/drawer";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger
-} from "@/components/ui/dialog";
 import { PaginationData } from "@/types";
+import {
+    AlertDialog,
+    AlertDialogCancel,
+    AlertDialogContent, AlertDialogDescription,
+    AlertDialogHeader, AlertDialogTitle,
+    AlertDialogTrigger
+} from "@/components/ui/alert-dialog";
 
 export default function AdminLabelIndexPage({ pagination }: {
     pagination: PaginationData<{
@@ -340,101 +330,48 @@ export default function AdminLabelIndexPage({ pagination }: {
                 Data Label yang terdaftar
             </CardDescription>
             <div className="flex flex-col lg:flex-row gap-2 items-start justify-between">
-                { useIsMobile() ? (
-                    <Drawer open={openCreateForm} onOpenChange={setOpenCreateForm} dismissible={false}>
-                        <DrawerTrigger asChild>
-                            <Button className="mt-4">
-                                Buat <Plus />
-                            </Button>
-                        </DrawerTrigger>
-                        <DrawerContent onOpenAutoFocus={(e) => e.preventDefault()}>
-                            <DrawerHeader className="text-left">
-                                <DrawerTitle>
-                                    Tambah Label
-                                </DrawerTitle>
-                                <DrawerDescription>
-                                    Label seperti "Sistem Operasi" dan "Modul 1"
-                                </DrawerDescription>
-                            </DrawerHeader>
-                            <div className="p-5">
-                                <form className={ cn("grid items-start gap-4") } onSubmit={ handleCreateFormSubmit }>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="nama">Nama Label</Label>
-                                        <Input
-                                            type="text"
-                                            id="nama"
-                                            value={ createForm.nama }
-                                            onChange={ (event) => {
-                                                setCreateForm((prevState) => ({
-                                                    ...prevState,
-                                                    nama: event.target.value
-                                                }));
-                                            } }
-                                        />
-                                    </div>
-                                    <Button type="submit" disabled={ createForm.onSubmit }>
-                                        { createForm.onSubmit
-                                            ? (
-                                                <>Memproses <Loader2 className="animate-spin"/></>
-                                            ) : (
-                                                <span>Simpan</span>
-                                            )
-                                        }
-                                    </Button>
-                                </form>
+                <AlertDialog open={ openCreateForm } onOpenChange={ setOpenCreateForm }>
+                    <AlertDialogTrigger asChild>
+                        <Button className="mt-4">
+                            Buat <Plus/>
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="my-alert-dialog-content" onOpenAutoFocus={ (e) => e.preventDefault() }>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                Tambah Label
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Label seperti <strong>Sistem Operasi</strong> dan <strong>Modul 1</strong>
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <form className={ cn("grid items-start gap-4") } onSubmit={ handleCreateFormSubmit }>
+                            <div className="grid gap-2">
+                                <Label htmlFor="nama">Nama Label</Label>
+                                <Input
+                                    type="text"
+                                    name="nama"
+                                    id="nama"
+                                    value={ createForm.nama }
+                                    onChange={ (event) => setCreateForm((prevState) => ({
+                                        ...prevState,
+                                        nama: event.target.value
+                                    })) }
+                                />
                             </div>
-                            <DrawerFooter className="pt-2">
-                                <DrawerClose asChild>
-                                    <Button variant="outline" onClick={ () => setOpenCreateForm(false) }>
-                                        Batal
-                                    </Button>
-                                </DrawerClose>
-                            </DrawerFooter>
-                        </DrawerContent>
-                    </Drawer>
-                ) : (
-                    <Dialog open={ openCreateForm } onOpenChange={ setOpenCreateForm }>
-                        <DialogTrigger asChild>
-                            <Button className="mt-4">
-                                Buat <Plus/>
+                            <Button type="submit" disabled={createForm.onSubmit}>
+                                { createForm.onSubmit
+                                    ? (
+                                        <>Memproses <Loader2 className="animate-spin" /></>
+                                    ) : (
+                                        <span>Simpan</span>
+                                    )
+                                }
                             </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={ (e) => e.preventDefault() }>
-                            <DialogHeader>
-                                <DialogTitle>
-                                    Tambah Label
-                                </DialogTitle>
-                                <DialogDescription>
-                                    Label seperti <strong>Sistem Operasi</strong> dan <strong>Modul 1</strong>
-                                </DialogDescription>
-                            </DialogHeader>
-                            <form className={ cn("grid items-start gap-4") } onSubmit={ handleCreateFormSubmit }>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="nama">Nama Label</Label>
-                                    <Input
-                                        type="text"
-                                        name="nama"
-                                        id="nama"
-                                        value={ createForm.nama }
-                                        onChange={ (event) => setCreateForm((prevState) => ({
-                                            ...prevState,
-                                            nama: event.target.value
-                                        })) }
-                                    />
-                                </div>
-                                <Button type="submit" disabled={createForm.onSubmit}>
-                                    { createForm.onSubmit
-                                        ? (
-                                            <>Memproses <Loader2 className="animate-spin" /></>
-                                        ) : (
-                                            <span>Simpan</span>
-                                        )
-                                    }
-                                </Button>
-                            </form>
-                        </DialogContent>
-                    </Dialog>
-                ) }
+                        </form>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                    </AlertDialogContent>
+                </AlertDialog>
                 <TableSearchForm table={ table }/>
             </div>
             <div className="rounded-md border">
@@ -510,208 +447,97 @@ export default function AdminLabelIndexPage({ pagination }: {
             </div>
 
             {/*--UPDATE-FORM--*/}
-            { useIsMobile() ? (
-                <Drawer open={openUpdateForm} onOpenChange={setOpenUpdateForm} dismissible={false}>
-                    <DrawerContent onOpenAutoFocus={(e) => e.preventDefault()}>
-                        <DrawerHeader className="text-left">
-                            <DrawerTitle>
-                                Update Label
-                            </DrawerTitle>
-                            <DrawerDescription>
-                                Anda akan mengubah nama Label
-                            </DrawerDescription>
-                        </DrawerHeader>
-                        <div className="p-5">
-                            <form className={ cn("grid items-start gap-4") } onSubmit={ handleUpdateFormSubmit }>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="nama">Nama Label</Label>
-                                    <Input
-                                        type="text"
-                                        id="nama"
-                                        value={ updateForm.nama }
-                                        onChange={ (event) => {
-                                            setUpdateForm((prevState) => ({
-                                                ...prevState,
-                                                nama: event.target.value
-                                            }));
-                                        } }
-                                    />
-                                </div>
-                                <Button type="submit" disabled={ updateForm.onSubmit }>
-                                    { updateForm.onSubmit
-                                        ? (
-                                            <>Memproses <Loader2 className="animate-spin"/></>
-                                        ) : (
-                                            <span>Simpan</span>
-                                        )
-                                    }
-                                </Button>
-                            </form>
+            <AlertDialog open={ openUpdateForm } onOpenChange={ setOpenUpdateForm }>
+                <AlertDialogContent className="my-alert-dialog-content" onOpenAutoFocus={ (e) => e.preventDefault() }>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            Update Label
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Anda akan mengubah nama Label
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <form className={ cn("grid items-start gap-4") } onSubmit={ handleUpdateFormSubmit }>
+                        <div className="grid gap-2">
+                            <Label htmlFor="nama">Nama Label</Label>
+                            <Input
+                                type="text"
+                                name="nama"
+                                id="nama"
+                                value={ updateForm.nama }
+                                onChange={ (event) => setUpdateForm((prevState) => ({
+                                    ...prevState,
+                                    nama: event.target.value
+                                })) }
+                            />
                         </div>
-                        <DrawerFooter className="pt-2">
-                            <DrawerClose asChild>
-                                <Button variant="outline" onClick={ () => setOpenUpdateForm(false) }>
-                                    Batal
-                                </Button>
-                            </DrawerClose>
-                        </DrawerFooter>
-                    </DrawerContent>
-                </Drawer>
-            ) : (
-                <Dialog open={ openUpdateForm } onOpenChange={ setOpenUpdateForm }>
-                    <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={ (e) => e.preventDefault() }>
-                        <DialogHeader>
-                            <DialogTitle>
-                                Update Label
-                            </DialogTitle>
-                            <DialogDescription>
-                                Anda akan mengubah nama Label
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form className={ cn("grid items-start gap-4") } onSubmit={ handleUpdateFormSubmit }>
-                            <div className="grid gap-2">
-                                <Label htmlFor="nama">Nama Label</Label>
-                                <Input
-                                    type="text"
-                                    name="nama"
-                                    id="nama"
-                                    value={ updateForm.nama }
-                                    onChange={ (event) => setUpdateForm((prevState) => ({
-                                        ...prevState,
-                                        nama: event.target.value
-                                    })) }
-                                />
-                            </div>
-                            <Button type="submit" disabled={updateForm.onSubmit}>
-                                { updateForm.onSubmit
-                                    ? (
-                                        <>Memproses <Loader2 className="animate-spin" /></>
-                                    ) : (
-                                        <span>Simpan</span>
-                                    )
-                                }
-                            </Button>
-                        </form>
-                    </DialogContent>
-                </Dialog>
-            ) }
+                        <Button type="submit" disabled={updateForm.onSubmit}>
+                            { updateForm.onSubmit
+                                ? (
+                                    <>Memproses <Loader2 className="animate-spin" /></>
+                                ) : (
+                                    <span>Simpan</span>
+                                )
+                            }
+                        </Button>
+                    </form>
+                    <AlertDialogCancel>Batal</AlertDialogCancel>
+                </AlertDialogContent>
+            </AlertDialog>
             {/*---UPDATE-FORM---*/}
 
             {/*--DELETE-FORM--*/}
-            { useIsMobile() ? (
-                <Drawer open={openDeleteForm} onOpenChange={setOpenDeleteForm} dismissible={false}>
-                    <DrawerContent onOpenAutoFocus={(e) => e.preventDefault()}>
-                        <DrawerHeader className="text-left">
-                            <DrawerTitle>
-                                Hapus Label
-                            </DrawerTitle>
-                            <DrawerDescription>
-                                <p className="text-red-600 font-bold">
-                                    Anda akan menghapus Label!
-                                </p>
-                                <p className="*:text-red-600">
-                                    Semua data praktikum yang termasuk periode <strong>{ deleteForm.nama }</strong> akan
-                                    kehilangan keterangannya.
-                                </p>
-                                <br/>
-                                <p className="text-red-600">
-                                    Data yang terhapus tidak akan bisa dikembalikan! harap gunakan dengan hati-hati
-                                </p>
-                            </DrawerDescription>
-                        </DrawerHeader>
-                        <div className="p-5">
-                            <form className={ cn("grid items-start gap-4") } onSubmit={ handleDeleteFormSubmit }>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="validation">Validasi aksi anda</Label>
-                                    <Input
-                                        type="text"
-                                        name="validation"
-                                        id="validation"
-                                        value={deleteForm.validation}
-                                        placeholder="JARKOM JAYA"
-                                        onChange={(event) =>
-                                            setDeleteForm((prevState) => ({
-                                                ...prevState,
-                                                validation: event.target.value,
-                                            }))
-                                        }
-                                        autoComplete="off"
-                                    />
-                                    <p>Ketik <strong>JARKOM JAYA</strong> untuk melanjutkan</p>
-                                </div>
-                                <Button type="submit" disabled={deleteForm.onSubmit || deleteForm.validation !== 'JARKOM JAYA'}>
-                                    { deleteForm.onSubmit
-                                        ? (
-                                            <>Memproses <Loader2 className="animate-spin" /></>
-                                        ) : (
-                                            <span>Simpan</span>
-                                        )
-                                    }
-                                </Button>
-                            </form>
-                        </div>
-                        <DrawerFooter className="pt-2">
-                            <DrawerClose asChild>
-                                <Button variant="outline" onClick={ () => setOpenDeleteForm(false) }>
-                                    Batal
-                                </Button>
-                            </DrawerClose>
-                        </DrawerFooter>
-                    </DrawerContent>
-                </Drawer>
-            ) : (
-                <Dialog open={ openDeleteForm } onOpenChange={ setOpenDeleteForm }>
-                    <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={ (e) => e.preventDefault() }>
-                        <DialogHeader>
-                            <DialogTitle>
-                                Hapus Label
-                            </DialogTitle>
-                            <DialogDescription className="flex flex-col gap-0.5">
-                                <p className="text-red-600 font-bold">
-                                    Anda akan menghapus Label!
-                                </p>
-                                <p className="*:text-red-600">
-                                    Semua data praktikum yang termasuk periode <strong>{ deleteForm.nama }</strong> akan
-                                    kehilangan keterangannya.
-                                </p>
-                                <br/>
-                                <p className="text-red-600">
-                                    Data yang terhapus tidak akan bisa dikembalikan! harap gunakan dengan hati-hati
-                                </p>
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form className={ cn("grid items-start gap-4") } onSubmit={ handleDeleteFormSubmit }>
-                            <div className="grid gap-2">
-                                <Label htmlFor="validation">Validasi aksi anda</Label>
-                                <Input
-                                    type="text"
-                                    name="validation"
-                                    id="validation"
-                                    value={ deleteForm.validation }
-                                    placeholder="JARKOM JAYA"
-                                    onChange={ (event) =>
-                                        setDeleteForm((prevState) => ({
-                                            ...prevState,
-                                            validation: event.target.value,
-                                        }))
-                                    }
-                                    autoComplete="off"
-                                />
-                                <p>Ketik <strong>JARKOM JAYA</strong> untuk melanjutkan</p>
-                            </div>
-                            <Button type="submit" disabled={ deleteForm.onSubmit || deleteForm.validation !== 'JARKOM JAYA'}>
-                                { deleteForm.onSubmit
-                                    ? (
-                                        <>Memproses <Loader2 className="animate-spin" /></>
-                                    ) : (
-                                        <span>Simpan</span>
-                                    )
+            <AlertDialog open={ openDeleteForm } onOpenChange={ setOpenDeleteForm }>
+                <AlertDialogContent className="my-alert-dialog-content" onOpenAutoFocus={ (e) => e.preventDefault() }>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            Hapus Label
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="flex flex-col gap-0.5">
+                            <p className="text-red-600 font-bold">
+                                Anda akan menghapus Label!
+                            </p>
+                            <p className="*:text-red-600">
+                                Semua data praktikum yang termasuk periode <strong>{ deleteForm.nama }</strong> akan
+                                kehilangan keterangannya.
+                            </p>
+                            <br/>
+                            <p className="text-red-600">
+                                Data yang terhapus tidak akan bisa dikembalikan! harap gunakan dengan hati-hati
+                            </p>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <form className={ cn("grid items-start gap-4") } onSubmit={ handleDeleteFormSubmit }>
+                        <div className="grid gap-2">
+                            <Label htmlFor="validation">Validasi aksi anda</Label>
+                            <Input
+                                type="text"
+                                name="validation"
+                                id="validation"
+                                value={ deleteForm.validation }
+                                placeholder="JARKOM JAYA"
+                                onChange={ (event) =>
+                                    setDeleteForm((prevState) => ({
+                                        ...prevState,
+                                        validation: event.target.value,
+                                    }))
                                 }
-                            </Button>
-                        </form>
-                    </DialogContent>
-                </Dialog>
-            ) }
+                                autoComplete="off"
+                            />
+                            <p>Ketik <strong>JARKOM JAYA</strong> untuk melanjutkan</p>
+                        </div>
+                        <Button type="submit" disabled={ deleteForm.onSubmit || deleteForm.validation !== 'JARKOM JAYA'}>
+                            { deleteForm.onSubmit
+                                ? (
+                                    <>Memproses <Loader2 className="animate-spin" /></>
+                                ) : (
+                                    <span>Simpan</span>
+                                )
+                            }
+                        </Button>
+                    </form>
+                </AlertDialogContent>
+            </AlertDialog>
             {/*---DELETE-FORM---*/}
         </AdminLayout>
     );

@@ -18,7 +18,7 @@ class PertemuanSeeder extends Seeder
         $praktikumList = Praktikum::all();
 
         foreach ($praktikumList as $praktikum) {
-            for ($i = 1; $i <= 8; $i++) {
+            for ($i = 1; $i <= 4; $i++) {
                 Pertemuan::create([
                     'id' => Str::uuid(),
                     'nama' => "Pertemuan $i",

@@ -33,22 +33,20 @@ import { Head, router } from "@inertiajs/react";
 import { PaginationData } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import axios, { AxiosError } from "axios";
-import { useIsMobile } from "@/hooks/use-mobile";
-import {
-    Drawer, DrawerClose,
-    DrawerContent,
-    DrawerDescription,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerTitle
-} from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { z } from "zod";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
+import {
+    AlertDialog,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogHeader,
+    AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 
 type Kuis = {
     id: string;
@@ -318,120 +316,57 @@ export default function AdminKuisIndexPage({ pagination }: {
             </div>
 
             {/*--DELETE-FORM--*/ }
-            { useIsMobile() ? (
-                <Drawer open={ openDeleteForm } onOpenChange={ setOpenDeleteForm } dismissible={ false }>
-                    <DrawerContent onOpenAutoFocus={ (e) => e.preventDefault() }>
-                        <DrawerHeader className="text-left">
-                            <DrawerTitle>
-                                Hapus Kuis
-                            </DrawerTitle>
-                            <DrawerDescription>
-                                <span className="text-red-600 font-bold">
-                                    Anda akan menghapus Kuis!
-                                </span>
-                                <span className="*:text-red-600">
-                                    Semua data Kuis <strong>{ deleteForm.nama }</strong> seperti nilai kuis dan sebagainya akan juga terhapus
-                                </span>
-                                <br/>
-                                <span className="text-red-600">
-                                    Data yang terhapus tidak akan bisa dikembalikan! harap gunakan dengan hati-hati
-                                </span>
-                            </DrawerDescription>
-                        </DrawerHeader>
-                        <div className="p-5">
-                            <form className={ cn("grid items-start gap-4") } onSubmit={ handleDeleteFormSubmit }>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="validation">Validasi aksi anda</Label>
-                                    <Input
-                                        type="text"
-                                        name="validation"
-                                        id="validation"
-                                        value={ deleteForm.validation }
-                                        placeholder="JARKOM JAYA"
-                                        onChange={ (event) =>
-                                            setDeleteForm((prevState) => ({
-                                                ...prevState,
-                                                validation: event.target.value,
-                                            }))
-                                        }
-                                        autoComplete="off"
-                                    />
-                                    <p>Ketik <strong>JARKOM JAYA</strong> untuk melanjutkan</p>
-                                </div>
-                                <Button type="submit"
-                                        disabled={ deleteForm.onSubmit || deleteForm.validation !== 'JARKOM JAYA' }>
-                                    { deleteForm.onSubmit
-                                        ? (
-                                            <>Memproses <Loader2 className="animate-spin"/></>
-                                        ) : (
-                                            <span>Simpan</span>
-                                        )
-                                    }
-                                </Button>
-                            </form>
-                        </div>
-                        <DrawerFooter className="pt-2">
-                            <DrawerClose asChild>
-                                <Button variant="outline" onClick={ () => setOpenDeleteForm(false) }>
-                                    Batal
-                                </Button>
-                            </DrawerClose>
-                        </DrawerFooter>
-                    </DrawerContent>
-                </Drawer>
-            ) : (
-                <Dialog open={ openDeleteForm } onOpenChange={ setOpenDeleteForm }>
-                    <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={ (e) => e.preventDefault() }>
-                        <DialogHeader>
-                            <DialogTitle>
-                                Hapus Kuis
-                            </DialogTitle>
-                            <DialogDescription className="flex flex-col gap-0.5">
-                                <span className="text-red-600 font-bold">
-                                    Anda akan menghapus Kuis!
-                                </span>
-                                <span className="*:text-red-600">
-                                    Semua data Kuis <strong>{ deleteForm.nama }</strong> seperti nilai kuis dan sebagainya akan juga terhapus
-                                </span>
-                                <br/>
-                                <span className="text-red-600">
-                                    Data yang terhapus tidak akan bisa dikembalikan! harap gunakan dengan hati-hati
-                                </span>
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form className={ cn("grid items-start gap-4") } onSubmit={ handleDeleteFormSubmit }>
-                            <div className="grid gap-2">
-                                <Label htmlFor="validation">Validasi aksi anda</Label>
-                                <Input
-                                    type="text"
-                                    name="validation"
-                                    id="validation"
-                                    value={ deleteForm.validation }
-                                    placeholder="JARKOM JAYA"
-                                    onChange={ (event) =>
-                                        setDeleteForm((prevState) => ({
-                                            ...prevState,
-                                            validation: event.target.value,
-                                        }))
-                                    }
-                                    autoComplete="off"
-                                />
-                                <p>Ketik <strong>JARKOM JAYA</strong> untuk melanjutkan</p>
-                            </div>
-                            <Button type="submit"
-                                    disabled={ deleteForm.onSubmit || deleteForm.validation !== 'JARKOM JAYA' }>
-                                { deleteForm.onSubmit
-                                    ? (
-                                        <>Memproses <Loader2 className="animate-spin"/></>
-                                    ) : (
-                                        <span>Simpan</span>
-                                    )
+            <AlertDialog open={ openDeleteForm } onOpenChange={ setOpenDeleteForm }>
+                <AlertDialogContent className="my-alert-dialog-content" onOpenAutoFocus={ (e) => e.preventDefault() }>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            Hapus Kuis
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="flex flex-col gap-0.5">
+                            <span className="text-red-600 font-bold">
+                                Anda akan menghapus Kuis!
+                            </span>
+                            <span className="*:text-red-600">
+                                Semua data Kuis <strong>{ deleteForm.nama }</strong> seperti nilai kuis dan sebagainya akan juga terhapus
+                            </span>
+                            <br/>
+                            <span className="text-red-600">
+                                Data yang terhapus tidak akan bisa dikembalikan! harap gunakan dengan hati-hati
+                            </span>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <form className={ cn("grid items-start gap-4") } onSubmit={ handleDeleteFormSubmit }>
+                        <div className="grid gap-2">
+                            <Label htmlFor="validation">Validasi aksi anda</Label>
+                            <Input
+                                type="text"
+                                name="validation"
+                                id="validation"
+                                value={ deleteForm.validation }
+                                placeholder="JARKOM JAYA"
+                                onChange={ (event) =>
+                                    setDeleteForm((prevState) => ({
+                                        ...prevState,
+                                        validation: event.target.value,
+                                    }))
                                 }
-                            </Button>
-                        </form>
-                    </DialogContent>
-                </Dialog>
-            ) }
+                                autoComplete="off"
+                            />
+                            <p>Ketik <strong>JARKOM JAYA</strong> untuk melanjutkan</p>
+                        </div>
+                        <Button type="submit" disabled={ deleteForm.onSubmit || deleteForm.validation !== 'JARKOM JAYA' }>
+                            { deleteForm.onSubmit
+                                ? (
+                                    <>Memproses <Loader2 className="animate-spin"/></>
+                                ) : (
+                                    <span>Simpan</span>
+                                )
+                            }
+                        </Button>
+                    </form>
+                    <AlertDialogCancel>Batal</AlertDialogCancel>
+                </AlertDialogContent>
+            </AlertDialog>
             {/*---DELETE-FORM---*/ }
         </AdminLayout>
     );

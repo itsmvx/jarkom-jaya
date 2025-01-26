@@ -86,3 +86,6 @@
 .my-card {
     @apply rounded-sm shadow-sm border-2 border-muted-foreground/30
 }
+.my-alert-dialog-content {
+    @apply max-w-[90%] sm:max-w-[425px] rounded
+}

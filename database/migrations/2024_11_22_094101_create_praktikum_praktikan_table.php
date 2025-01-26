@@ -15,6 +15,7 @@ return new class extends Migration
             $table->foreignUuid('praktikum_id')->constrained('praktikum')->cascadeOnDelete();
             $table->foreignUuid('praktikan_id')->constrained('praktikan')->cascadeOnDelete();
             $table->foreignUuid('aslab_id')->nullable()->constrained('aslab')->nullOnDelete();
+            $table->foreignUuid('sesi_praktikum_id')->nullable()->constrained('sesi_praktikum')->nullOnDelete();
             $table->string('krs')->nullable();
             $table->string('pembayaran')->nullable();
             $table->string('modul')->nullable();

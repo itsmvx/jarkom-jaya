@@ -15,17 +15,9 @@ use App\Http\Controllers\PraktikumController;
 use App\Http\Controllers\PraktikumPraktikanController;
 use App\Http\Controllers\SesiPraktikumController;
 use App\Http\Controllers\SoalController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
-});
 
 Route::get('/assets/{filename}', function ($filename) {
     $allowedExtensions = ['xlsx', 'xls'];
@@ -47,9 +39,9 @@ Route::get('/assets/{filename}', function ($filename) {
 Route::get('/test', function () {
     return Inertia::render('Test');
 });
-Route::get('/hall-of-fames', function () {
-    return Inertia::render('HallOfFamesPage');
-})->name('hall-of-fames');
+
+Route::get('/', function () {return Inertia::render('Welcome');});
+Route::get('/hall-of-fames', function () {return Inertia::render('HallOfFamesPage');})->name('hall-of-fames');
 Route::get('/ban-list', [PraktikanPagesController::class, 'banListPage'])->name('ban-list');
 
 Route::get('/login-admin', [AdminPagesController::class, 'loginPage'])->name('admin.login');
@@ -88,8 +80,8 @@ Route::prefix('modul')->name('modul.')->group(function () {
     Route::post('/update', [ModulController::class, 'update'])->name('update');
     Route::post('/delete', [ModulController::class, 'destroy'])->name('delete');
 });
-Route::prefix('sesi')->name('sesi.')->group(function () {
-    Route::post('/create', [SesiPraktikumController::class, 'create'])->name('create');
+Route::prefix('sesi-praktikum')->name('sesi-praktikum.')->group(function () {
+    Route::post('/create', [SesiPraktikumController::class, 'store'])->name('create');
     Route::post('/update', [SesiPraktikumController::class, 'update'])->name('update');
     Route::post('/delete', [SesiPraktikumController::class, 'destroy'])->name('delete');
 });

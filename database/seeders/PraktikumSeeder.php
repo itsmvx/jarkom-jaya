@@ -25,7 +25,7 @@ class PraktikumSeeder extends Seeder
                     'id' => Str::uuid(),
                     'nama' => "{$jenis->nama} {$periode->nama}",
                     'tahun' => 2025,
-                    'status' => true,
+                    'status' => false,
                     'jenis_praktikum_id' => $jenis->id,
                     'periode_praktikum_id' => $periode->id,
                 ]);

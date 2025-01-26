@@ -1,6 +1,15 @@
 export const _MyWebConfig = {
     VIEW_PER_PAGE: [ 10, 25, 50, 100 ],
 };
+export const _NamaHari = [
+    "Senin",
+    "Selasa",
+    "Rabu",
+    "Kamis",
+    "Jumat",
+    "Sabtu",
+    "Minggu",
+];
 
 export const Aslab_DATA: {
     id: string;

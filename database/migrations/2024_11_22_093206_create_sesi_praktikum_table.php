@@ -14,7 +14,10 @@ return new class extends Migration
         Schema::create('sesi_praktikum', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('nama');
-            $table->string('waktu');
+            $table->string('hari');
+            $table->time('waktu_mulai');
+            $table->time('waktu_selesai');
+            $table->integer('kuota')->nullable();
             $table->foreignUuid('praktikum_id')->constrained('praktikum');
             $table->timestamps();
         });
