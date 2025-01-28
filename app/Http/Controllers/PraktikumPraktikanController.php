@@ -135,6 +135,45 @@ class PraktikumPraktikanController extends Controller
             ], 500);
         }
     }
+    public function verifikasi(Request $request)
+    {
+        $validated = $request->validate([
+            'praktikan_id' => 'required|exists:praktikan,id',
+            'praktikum_id' => 'required|exists:praktikum,id',
+            'sesi_praktikum_id' => 'required|exists:sesi_praktikum,id',
+            'aslab_id' => 'required|exists:aslab,id',
+            'terverifikasi' => 'required|boolean',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $updateData = [
+                'sesi_praktikum_id' => $validated['sesi_praktikum_id'],
+                'aslab_id' => $validated['aslab_id'],
+                'terverifikasi' => $validated['terverifikasi'],
+            ];
+
+//            if ($validated['terverifikasi']) {
+//                $updateData['pengembalian'] = null;
+//            }
+
+            PraktikumPraktikan::where('praktikan_id', $validated['praktikan_id'])
+                ->where('praktikum_id', $validated['praktikum_id'])
+                ->update($updateData);
+
+            DB::commit();
+            return Response::json([
+                'message' => $validated['terverifikasi'] ? 'Praktikan berhasil diverifikasi!' : 'Berhasil membatalkan verifikasi!',
+            ]);
+        } catch (QueryException $exception) {
+            DB::rollBack();
+            return Response::json([
+                'message' => config('app.debug')
+                    ? $exception->getMessage()
+                    : 'Server gagal memproses permintaan.',
+            ], 500);
+        }
+    }
 
     /**
      * Display the specified resource.

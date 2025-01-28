@@ -1,17 +1,10 @@
 "use client"
-
+import { saveAs } from 'file-saver';
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
+import { Document, Image, Page, pdf, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Button } from "@/components/ui/button";
+import { MahiruCirle } from "@/lib/StaticImagesLib";
+import LogoJarkom from "@/assets/logo-jarkom-new.png";
 
 export default function Test() {
     const [isOpen, setIsOpen] = useState(false)
@@ -32,72 +25,119 @@ export default function Test() {
         }
     }
 
+    const styles = StyleSheet.create({
+        page: {
+            flexDirection: 'column',
+            backgroundColor: '#fff',
+            padding: 16,
+        },
+        header: {
+            width: '100%',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            gap: '10px'
+        },
+        logo: {
+            width: 35,
+            height: 35,
+        },
+        headerContents: {
+            flexBasis: 'auto',
+            justifyContent: 'center',
+        },
+        tableWrapper: {
+            border: '0.5px solid #333333', // Border untuk seluruh table wrapper
+            marginBottom: 20, // Memberikan jarak bawah
+        },
+        table: {
+            width: '100%',
+            borderCollapse: 'collapse', // Menggabungkan border agar tidak ada celah antar cell
+        },
+        row: {
+            flexDirection: 'row',
+        },
+        cell: {
+            border: '0.5px solid #333333', // Border untuk setiap cell
+            padding: 6,
+            flexGrow: 1,
+            textAlign: 'center',
+            fontFamily: 'Helvetica-Bold',
+            fontSize: '10.5px',
+            fontWeight: 'bold',
+        }
+    });
+    const savePDF = async () => {
+        try {
+            const doc = (
+                <Document>
+                    <Page size="A6" orientation="landscape" style={styles.page}>
+                        <View style={styles.header}>
+                            <Image style={styles.logo} src={MahiruCirle} />
+                            <View style={{
+                                alignItems: 'center',
+                            }}>
+                                <Text style={{ fontFamily: 'Helvetica-Bold', fontWeight: 'heavy', fontSize: '14.5px' }}>Kartu Praktikum</Text>
+                                <Text style={{ fontWeight: 'normal', fontSize: '9px' }}>Jaringan Komputer XXXIX - 2024</Text>
+                                <Text style={{ fontWeight: 'normal', fontSize: '9px' }}>Laboratorium Jaringan Komputer</Text>
+                            </View>
+                            <Image style={styles.logo} src={LogoJarkom} />
+                        </View>
+                        <View style={{ backgroundColor: '#000', width: '100%', height: '1px', marginVertical: '10px' }} />
+                        <View style={{
+                            flexDirection: 'row',
+                            flexBasis: 'auto',
+                            flex: '1 1 0%'
+                        }}>
+                            <View style={{ margin: '',  }}>
+
+                            </View>
+                            {/*FILL*/}
+                        </View>
+
+                        <View style={styles.tableWrapper}>
+                            <View style={{
+                                width: '100%',
+                                borderBottom: '0.5px solid #333333',
+                                marginBottom: -1,
+                            }}>
+                                <Text style={{ textAlign: 'center', fontFamily: 'Helvetica-Bold', fontSize: "10.5px", fontWeight: 'extrabold', padding: 2 }}>Pelanggaran</Text>
+                            </View>
+                            <View style={styles.table}>
+                                <View style={styles.row}>
+                                    <Text style={styles.cell}>Modul 1</Text>
+                                    <Text style={styles.cell}>Modul 2</Text>
+                                    <Text style={styles.cell}>Modul 3</Text>
+                                    <Text style={styles.cell}>Modul 4</Text>
+                                </View>
+                                <View style={styles.row}>
+                                    <Text style={styles.cell}>-</Text>
+                                    <Text style={styles.cell}>-</Text>
+                                    <Text style={styles.cell}>-</Text>
+                                    <Text style={styles.cell}>-</Text>
+                                </View>
+                            </View>
+                        </View>
+                    </Page>
+                </Document>
+
+            );
+
+            const asPdf = pdf();
+            asPdf.updateContainer(doc);
+            const pdfBlob = await  asPdf.toBlob();
+            saveAs(pdfBlob, 'document.pdf');
+        } catch (error) {
+            console.error(error);
+            alert('Error generating PDF');
+        }
+    }
+
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle className="text-2xl font-bold text-primary">Welcome to Our Site!</DialogTitle>
-                    <DialogDescription className="text-lg text-muted-foreground">
-                        We're excited to have you here. Let's get you started with some key features.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                    <div className="flex items-center gap-4">
-                        <div className="rounded-full bg-primary/10 p-2">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                strokeWidth={1.5}
-                                stroke="currentColor"
-                                className="h-6 w-6 text-primary"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"
-                                />
-                            </svg>
-                        </div>
-                        <div className="flex-1">
-                            <h3 className="text-lg font-semibold">Personalized Experience</h3>
-                            <p className="text-sm text-muted-foreground">Tailored content just for you</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="rounded-full bg-primary/10 p-2">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                strokeWidth={1.5}
-                                stroke="currentColor"
-                                className="h-6 w-6 text-primary"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
-                                />
-                            </svg>
-                        </div>
-                        <div className="flex-1">
-                            <h3 className="text-lg font-semibold">Secure & Private</h3>
-                            <p className="text-sm text-muted-foreground">Your data is always protected</p>
-                        </div>
-                    </div>
-                </div>
-                <DialogFooter className="flex-col items-start sm:flex-row sm:justify-between sm:space-x-0">
-                    <div className="flex items-center space-x-2">
-                        <Switch id="dont-show" checked={dontShowAgain} onCheckedChange={setDontShowAgain} />
-                        <Label htmlFor="dont-show">Don't show this again</Label>
-                    </div>
-                    <Button type="submit" onClick={handleClose} className="mt-4 sm:mt-0">
-                        Let's Get Started
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+        <>
+            <Button onClick={savePDF}>
+                Download
+            </Button>
+        </>
     )
 }
 

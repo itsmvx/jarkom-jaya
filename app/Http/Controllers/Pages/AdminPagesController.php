@@ -10,6 +10,7 @@ use App\Models\Label;
 use App\Models\PeriodePraktikum;
 use App\Models\Praktikan;
 use App\Models\Praktikum;
+use App\Models\SesiPraktikum;
 use App\Models\Soal;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -175,15 +176,107 @@ class AdminPagesController extends Controller
         }
 
         try {
-            $praktikum = Praktikum::with('praktikan:id,nama,npm')
-                ->find($idParam);
+            $praktikum = Praktikum::select('id', 'nama')
+                ->where('id', $idParam)
+                ->with([
+                    'praktikan' => fn($query) => $query
+                        ->select('praktikan.id', 'praktikan.nama', 'praktikan.npm')
+                        ->addSelect([
+                            'krs' => 'praktikum_praktikan.krs',
+                            'pembayaran' => 'praktikum_praktikan.pembayaran',
+                            'modul' => 'praktikum_praktikan.modul',
+                            'terverifikasi' => 'praktikum_praktikan.terverifikasi',
+                            'aslab_id' => 'praktikum_praktikan.aslab_id',
+                            'sesi_praktikum_id' => 'praktikum_praktikan.sesi_praktikum_id',
+                        ])
+                        ->with([
+                            'sesi' => fn($sesiQuery) => $sesiQuery->select('id', 'nama'),
+                            'aslab' => fn($aslabQuery) => $aslabQuery->select('id', 'nama'),
+                        ]),
+                ])
+                ->first();
 
             if (!$praktikum) {
                 abort(404);
             }
 
             return Inertia::render('Admin/AdminPraktikumPraktikanIndexPage', [
-                'praktikum' => fn() => $praktikum->only(['id', 'nama', 'praktikan'])
+                'currentDate' => Carbon::now('Asia/Jakarta'),
+                'praktikum' => fn() => [
+                    'id' => $praktikum->id,
+                    'nama' => $praktikum->nama,
+                    'praktikan' => $praktikum->praktikan->map(fn($p) => [
+                        'id' => $p->id,
+                        'nama' => $p->nama,
+                        'npm' => $p->npm,
+                        'krs' => $p->krs,
+                        'pembayaran' => $p->pembayaran,
+                        'modul' => $p->modul,
+                        'terverifikasi' => (bool) $p->terverifikasi,
+                        'aslab' => $p->aslab
+                            ? [
+                                'id' => $p->aslab->id,
+                                'nama' => $p->aslab->nama,
+                            ]
+                            : null,
+                        'sesi' => $p->sesi
+                            ? [
+                                'id' => $p->sesi->id,
+                                'nama' => $p->sesi->nama,
+                            ]
+                            : null,
+                    ]),
+                ],
+                'sesiPraktikums' => fn() => SesiPraktikum::select([
+                    'sesi_praktikum.id',
+                    'sesi_praktikum.nama',
+                    'sesi_praktikum.hari',
+                    'sesi_praktikum.waktu_mulai',
+                    'sesi_praktikum.waktu_selesai',
+                    'sesi_praktikum.kuota',
+                    DB::raw('(sesi_praktikum.kuota - COUNT(praktikum_praktikan.praktikan_id)) as sisa_kuota'),
+                ])
+                    ->leftJoin('praktikum_praktikan', 'sesi_praktikum.id', '=', 'praktikum_praktikan.sesi_praktikum_id')
+                    ->where('sesi_praktikum.praktikum_id', $idParam)
+                    ->groupBy(
+                        'sesi_praktikum.id',
+                        'sesi_praktikum.nama',
+                        'sesi_praktikum.hari',
+                        'sesi_praktikum.waktu_mulai',
+                        'sesi_praktikum.waktu_selesai',
+                        'sesi_praktikum.kuota'
+                    )
+                    ->orderBy('sesi_praktikum.nama', 'asc')
+                    ->get()
+                    ->map(fn($sesi) => [
+                        'id' => $sesi->id,
+                        'nama' => $sesi->nama,
+                        'kuota' => $sesi->kuota,
+                        'sisa_kuota' => is_null($sesi->sisa_kuota) ? null : (int) $sesi->sisa_kuota,
+                        'hari' => $sesi->hari,
+                        'waktu_mulai' => $sesi->waktu_mulai,
+                        'waktu_selesai' => $sesi->waktu_selesai,
+                    ]),
+                'aslabs' => fn() => Aslab::select([
+                    'aslab.id',
+                    'aslab.nama',
+                    'aslab.npm',
+                    DB::raw('COUNT(praktikum_praktikan.praktikan_id) AS kuota')
+                ])
+                    ->leftJoin('praktikum_praktikan', function ($join) use ($idParam) {
+                        $join->on('aslab.id', '=', 'praktikum_praktikan.aslab_id')
+                            ->where('praktikum_praktikan.praktikum_id', '=', $idParam);
+                    })
+                    ->where('aslab.aktif', true)
+                    ->groupBy('aslab.id', 'aslab.nama', 'aslab.npm')
+                    ->orderBy('aslab.npm', 'asc')
+                    ->get()
+                    ->map(fn($aslab) => [
+                        'id' => $aslab->id,
+                        'nama' => $aslab->nama,
+                        'npm' => $aslab->npm,
+                        'kuota' => (int) $aslab->kuota,
+                    ]),
             ]);
         } catch (QueryException $exception) {
             abort(500);

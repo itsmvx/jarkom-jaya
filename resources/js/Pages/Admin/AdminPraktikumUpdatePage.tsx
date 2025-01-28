@@ -890,9 +890,6 @@ export default function AdminPraktikumUpdatePage({ praktikum, jenisPraktikums, p
             });
     };
 
-    console.log(praktikum);
-    console.log(updateSesi);
-
     return (
         <>
             <AdminLayout>

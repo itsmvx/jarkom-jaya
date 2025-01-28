@@ -2,7 +2,7 @@ import { useState, useEffect, ReactNode } from 'react';
 import { Bell } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Glacio, Havoc, Spectro } from "@/lib/StaticImagesLib";
+import { Electro, Glacio, Havoc, Spectro } from "@/lib/StaticImagesLib";
 import Cookies from "js-cookie";
 
 export const AppLayout = ({ children }: {
@@ -44,8 +44,7 @@ export const AppLayout = ({ children }: {
                                 className="col-span-1"
                             />
                             <p className="col-span-11">
-                                <strong> Halaman Admin</strong>, tinggal klik Masuk di pojok kanan atas navbar, di
-                                halaman login langsung klik Masuk di formnya tanpa username atau password
+                                <strong> Halaman Admin</strong>, fitur yang bisa digunakan yaitu Manajemen Praktikum yang mencakup data Praktikum, Jenis Praktikum, Periode Praktikum, kemudian Manajemen Praktikan yang mencakup Data Praktikan dan Registrasi Praktikan ke Praktikum, dan terakhir, Manajemen Kuis yang mencakup Soal dan Label Soal.
                             </p>
                         </li>
                         <li className="grid grid-cols-12 gap-1 text-sm text-gray-800">
@@ -56,8 +55,7 @@ export const AppLayout = ({ children }: {
                                 className="col-span-1"
                             />
                             <p className="col-span-11">
-                                <strong>Operasi CRUD Admin</strong>, sudah terkoneksi ke Database sih.. bisa dicoba
-                                untuk operasi CRUD nya
+                                <strong>Halaman Praktikan</strong>, memerlukan autentikasi (login) untuk menggunakan beberapa fitur seperti Profil, dan Registrasi Praktikum
                             </p>
                         </li>
                         <li className="grid grid-cols-12 gap-1 text-sm text-gray-800">
@@ -68,7 +66,18 @@ export const AppLayout = ({ children }: {
                                 className="col-span-1"
                             />
                             <p className="col-span-11">
-                                <strong>Lorem ipsum dolor sit amet,</strong>, consectetur adipiscing elit
+                                <strong>Halaman Aslab,</strong>, bentar.. masih Malas
+                            </p>
+                        </li>
+                        <li className="grid grid-cols-12 gap-1 text-sm text-gray-800">
+                            <img
+                                src={ Electro }
+                                width={ 40 }
+                                alt="spectro"
+                                className="col-span-1"
+                            />
+                            <p className="col-span-11">
+                                <strong>Manajemen Nilai Praktikum,</strong>, modar ketimpa JOIN JOIN JOIN
                             </p>
                         </li>
                     </ul>

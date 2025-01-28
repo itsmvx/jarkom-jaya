@@ -2,7 +2,15 @@ import { AdminLayout } from "@/layouts/AdminLayout";
 import { Head, router } from "@inertiajs/react";
 import { CardDescription, CardTitle } from "@/components/ui/card";
 import { NotificationCard } from "@/components/notification-card";
-import { ArrowBigLeft, ArrowUpDown, Download, Loader2, Trash2, TriangleAlert } from "lucide-react";
+import {
+    ArrowBigLeft,
+    ArrowUpDown, ChevronDown, CircleAlert, CircleCheckBig,
+    Download, FolderCheck, FolderX,
+    Loader2,
+    MoreHorizontal,
+    Trash2,
+    TriangleAlert
+} from "lucide-react";
 import { FileUploader } from "@/components/file-uploader";
 import { Button } from "@/components/ui/button";
 import { FormEvent, useEffect, useState } from "react";
@@ -26,27 +34,63 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from "@/components/ui/alert-dialog";
-import { cn } from "@/lib/utils";
+import { cn, parseSesiTime } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import axios, { AxiosError } from "axios";
 import { z } from "zod";
+import {
+    DropdownMenu,
+    DropdownMenuContent, DropdownMenuItem,
+    DropdownMenuLabel, DropdownMenuSeparator,
+    DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 type Praktikan = {
     id: string;
     npm: string;
     nama: string;
+    krs: string | null;
+    pembayaran: string | null;
+    modul: string | null;
+    terverifikasi: boolean;
+    aslab: {
+        id: string;
+        nama: string;
+    } | null;
+    sesi: {
+        id: string;
+        nama: string;
+    } | null;
 };
 type Praktikum = {
     id: string;
     nama: string;
     praktikan: Praktikan[];
 };
-export default function AdminPraktikumPraktikanIndexPage({ praktikum }: {
+export default function AdminPraktikumPraktikanIndexPage({ currentDate, praktikum, sesiPraktikums, aslabs }: {
+    currentDate: string;
     praktikum: Praktikum;
+    sesiPraktikums: {
+        id: string;
+        nama: string;
+        kuota: number | null;
+        sisa_kuota: number | null;
+        hari: string;
+        waktu_mulai: string;
+        waktu_selesai: string;
+    }[];
+    aslabs: {
+        id: string;
+        nama: string;
+        npm: string;
+        kuota: number;
+    }[];
 }) {
     const { toast } = useToast();
-
     type uploadFile = {
         file: File | null;
         onLoad: boolean;
@@ -66,6 +110,15 @@ export default function AdminPraktikumPraktikanIndexPage({ praktikum }: {
         validation: string;
         onSubmit: boolean;
     };
+    type VerifikasiPraktikan = {
+        id: string;
+        nama: string;
+        npm: string;
+        sesi_praktikum_id: string;
+        aslab_id: string;
+        isRandomAslab: boolean;
+        onSubmit: boolean;
+    };
     const uploadFileInit: uploadFile = {
         file: null,
         onLoad: false,
@@ -78,6 +131,15 @@ export default function AdminPraktikumPraktikanIndexPage({ praktikum }: {
         validation: '',
         onSubmit: false,
     };
+    const verifikasiPraktikanInit: VerifikasiPraktikan = {
+        id: '',
+        nama: '',
+        npm: '',
+        sesi_praktikum_id: '',
+        aslab_id: '',
+        isRandomAslab: false,
+        onSubmit: false
+    };
 
     const [uploadFile, setUploadFile] = useState<uploadFile>(uploadFileInit);
     const [uploadErrors, setUploadErrors] = useState<UploadErrors[]>([]);
@@ -86,6 +148,10 @@ export default function AdminPraktikumPraktikanIndexPage({ praktikum }: {
     const [onFetchIdPraktikan, setOnFetchIdPraktikan] = useState(false);
     const [onSubmitUploadContents, setOnSubmitUploadContents] = useState<boolean>(false);
 
+    const [ verifikasiPraktikan, setVerifikasiPraktikan ] = useState<VerifikasiPraktikan>(verifikasiPraktikanInit);
+    const [ openVerifikasiPraktikan, setOpenVerifikasiPraktikan ] = useState<boolean>(false);
+    const [ openReturnVerifikasiPraktikan, setOpenReturnVerifikasiPraktikan ] = useState<boolean>(false);
+    const [ inValidVerifikasiPraktikan, setInvalidVerifikasiPraktikan ] = useState<boolean>(false);
     const [ openDeletePraktikan, setOpenDeletePraktikan ] = useState(false);
     const [ deletePraktikan, setDeletePraktikan ] = useState<DeletePraktikan>(deletePraktikanInit);
 
@@ -252,6 +318,93 @@ export default function AdminPraktikumPraktikanIndexPage({ praktikum }: {
                 });
             });
     };
+    const handleDownload = (url: string | null) => {
+        if (url) {
+            window.open(`/storage/praktikum/${url}`, "_blank");
+        }
+        return;
+    };
+    const handleOpenVerifikasi = (id: string) => {
+        const praktikan = praktikum.praktikan.find((praktikan) => praktikan.id === id);
+        if (!praktikan) {
+            setInvalidVerifikasiPraktikan(true);
+            return;
+        }
+
+        const sesiPraktikum = sesiPraktikums.find((sesi) => sesi.id === praktikan.sesi?.id);
+        const isFullSesiPraktikum = sesiPraktikum
+            ? sesiPraktikum.kuota !== null && (sesiPraktikum.sisa_kuota ?? 0) <= 0
+            : false;
+        setVerifikasiPraktikan((prevState) => ({
+            ...prevState,
+            id: praktikan.id,
+            nama: praktikan.nama,
+            npm: praktikan.npm,
+            sesi_praktikum_id: !isFullSesiPraktikum ? (praktikan.sesi?.id ?? '') : '',
+            aslab_id: praktikan.aslab?.id ?? '',
+            isRandomAslab: false
+        }));
+        setOpenVerifikasiPraktikan(true);
+    };
+    const handleCancelVerifikasi = (open: boolean) => {
+        if (!open) {
+            setOpenVerifikasiPraktikan(false);
+            setVerifikasiPraktikan(verifikasiPraktikanInit);
+        }
+    };
+    const handleSubmitVerifikasiPraktikan = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setVerifikasiPraktikan((prevState) => ({ ...prevState, onSubmit: true }));
+
+        const { id, sesi_praktikum_id, aslab_id, isRandomAslab } = verifikasiPraktikan;
+
+        let selectedAslabId = aslab_id;
+        if (isRandomAslab) {
+            if (aslabs.length > 0) {
+                const minKuota = Math.min(...aslabs.map(aslab => aslab.kuota));
+                const minKuotaAslabs = aslabs.filter(aslab => aslab.kuota === minKuota);
+                selectedAslabId = minKuotaAslabs[Math.floor(Math.random() * minKuotaAslabs.length)].id;
+            } else {
+                toast({
+                    variant: "destructive",
+                    title: "Aslab tidak tersedia!",
+                    description: "Tidak ada data aslab yang tersedia untuk dipilih.",
+                });
+                setVerifikasiPraktikan((prevState) => ({ ...prevState, onSubmit: false }));
+                return;
+            }
+        }
+
+        axios.post(route('praktikum-praktikan.verifikasi'), {
+            praktikum_id: praktikum.id,
+            praktikan_id: id,
+            sesi_praktikum_id: sesi_praktikum_id,
+            aslab_id: selectedAslabId,
+            terverifikasi: true
+        })
+            .then((res) => {
+                setVerifikasiPraktikan(verifikasiPraktikanInit);
+                setOpenVerifikasiPraktikan(false);
+                toast({
+                    variant: 'default',
+                    className: 'bg-green-500 text-white',
+                    title: "Berhasil!",
+                    description: res.data.message,
+                });
+                router.reload({ only: ['praktikum', 'sesiPraktikums', 'aslabs'] });
+            })
+            .catch((err: unknown) => {
+                const errMsg: string = err instanceof AxiosError && err.response?.data?.message
+                    ? err.response.data.message
+                    : 'Error tidak diketahui terjadi!';
+                setVerifikasiPraktikan((prevState) => ({ ...prevState, onSubmit: false }));
+                toast({
+                    variant: "destructive",
+                    title: "Permintaan gagal diproses!",
+                    description: errMsg,
+                });
+            });
+    };
 
     const columns: ColumnDef<Praktikan>[] = [
         {
@@ -260,7 +413,7 @@ export default function AdminPraktikumPraktikanIndexPage({ praktikum }: {
                 <Button
                     variant="ghost"
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                    className="w-full justify-start"
+                    className="min-w-40 justify-start"
                 >
                     NPM
                     <ArrowUpDown />
@@ -283,19 +436,143 @@ export default function AdminPraktikumPraktikanIndexPage({ praktikum }: {
                 </Button>
             ),
             cell: ({ row }) => (
-                <div className="w-full px-2 text-left truncate overflow-hidden whitespace-nowrap capitalize">
+                <div className="w-full ml-4 text-left truncate overflow-hidden whitespace-nowrap capitalize">
                     {row.getValue("nama")}
                 </div>
             ),
         },
         {
+            accessorFn: (row) => row.sesi?.nama || "-",
+            id: "sesi.nama",
+            header: ({ column }) => {
+                return (
+                    <Button
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                        className="max-w-32 justify-start"
+                    >
+                        Sesi
+                        <ArrowUpDown />
+                    </Button>
+                );
+            },
+            cell: ({ row }) => {
+                const sesi = row.original.sesi;
+                return (
+                    <div className="capitalize min-w-16 max-w-20 ml-4">
+                        <p>{ sesi ? `${sesi.nama}` : '-'  }</p>
+                    </div>
+                );
+            },
+        },
+        {
+            accessorFn: (row) => row.aslab?.nama || "-",
+            id: "aslab.nama",
+            header: ({ column }) => {
+                return (
+                    <Button
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                        className="min-w-48 justify-start"
+                    >
+                        Asisten Laboratorium
+                        <ArrowUpDown />
+                    </Button>
+                );
+            },
+            cell: ({ row }) => {
+                const aslab = row.original.aslab;
+                return (
+                    <div className="capitalize min-w-48 max-w-60 truncate ml-4">
+                        <p>{ aslab ? `${aslab.nama}` : '-'  }</p>
+                    </div>
+                );
+            },
+        },
+        {
+            accessorKey: "terverifikasi",
+            header: ({ column }) => (
+                <Button
+                    variant="ghost"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    className="w-36 justify-start"
+                >
+                    Terverifikasi
+                    <ArrowUpDown />
+                </Button>
+            ),
+            cell: ({ row }) => {
+                const terverifikasi = row.original.terverifikasi;
+                return (
+                    <div className={ `ml-3 w-28 flex gap-1 items-center justify-center ${terverifikasi ? 'text-green-600' : 'text-red-500'} text-sm` }>
+                        { row.original.terverifikasi
+                            ? (
+                                <>
+                                    <CircleCheckBig size={20} strokeWidth={2.5} color="green" />
+                                </>
+                            ) : (
+                                <>
+                                    <CircleAlert size={20} strokeWidth={2.5} />
+                                </>
+                            )
+                        }
+                    </div>
+                )
+            }
+        },
+        {
+            id: "downloads",
+            enableHiding: false,
+            cell: ({ row }) => {
+                const krs = row.original.krs;
+                const praktikum = row.original.pembayaran;
+                const modul = row.original.modul;
+                return (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="w-14 space-x-0">
+                                <Download />
+                                <ChevronDown />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-40 *:text-sm">
+                            <DropdownMenuItem disabled={!krs} onSelect={() => handleDownload(krs)}>KRS</DropdownMenuItem>
+                            <DropdownMenuItem disabled={!praktikum} onSelect={() => handleDownload(praktikum)}>Kwitansi Praktikum</DropdownMenuItem>
+                            <DropdownMenuItem disabled={!modul} onSelect={() => handleDownload(modul)}>Transfer Modul</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                );
+            },
+        },
+        {
             id: "actions",
             enableHiding: false,
-            cell: ({ row }) => ((
-                <Button size="icon" variant="ghost" className="group hover:bg-red-500/85" onClick={() => handleOpenDeletePraktikan({ id: row.original.id, nama: row.original.nama })}>
-                    <Trash2 className="text-red-600 group-hover:text-white transition-colors" />
-                </Button>
-            ))
+            cell: ({ row }) => {
+                const originalRow = row.original;
+                return (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                            <DropdownMenuItem disabled={originalRow.terverifikasi} onClick={() => handleOpenVerifikasi(row.original.id)}>
+                                <FolderCheck /> Verifikasi
+                            </DropdownMenuItem>
+                            <DropdownMenuItem disabled={originalRow.terverifikasi} onClick={() => setOpenReturnVerifikasiPraktikan(true)}>
+                                <FolderX /> Kembalikan
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleOpenDeletePraktikan({ id: row.original.id, nama: row.original.nama })}>
+                                <Trash2 /> Hapus data
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                );
+            },
         },
     ];
 
@@ -432,10 +709,12 @@ export default function AdminPraktikumPraktikanIndexPage({ praktikum }: {
         }
     }, [ uploadContents ]);
 
+    console.log(verifikasiPraktikan);
+
     return (
         <>
             <AdminLayout>
-                <Head title="Admin - Praktikum|Data Praktikan"/>
+                <Head title={ `Admin - Data Praktikan ${praktikum.nama}` } />
                 <Button variant="ghost" size="icon" onClick={ () => router.visit(route('admin.praktikum.index')) }>
                     <ArrowBigLeft />
                 </Button>
@@ -487,6 +766,14 @@ export default function AdminPraktikumPraktikanIndexPage({ praktikum }: {
                                     </div>
                                 </>
                             ) }
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+                <Accordion type="single" collapsible className="w-full" defaultValue="item-1">
+                    <AccordionItem value="item-1">
+                        <AccordionTrigger>Informasi Kuota Asisten Lab.</AccordionTrigger>
+                        <AccordionContent>
+
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
@@ -673,8 +960,151 @@ export default function AdminPraktikumPraktikanIndexPage({ praktikum }: {
                     </form>
                 </AlertDialogContent>
             </AlertDialog>
+
+            <AlertDialog open={ inValidVerifikasiPraktikan }>
+                <AlertDialogContent className="my-alert-dialog-content" onOpenAutoFocus={ (e) => e.preventDefault() }>
+                    <AlertDialogHeader>
+                        <AlertDialogDescription className="flex flex-col gap-0.5">
+                            <p className="text-red-600 font-bold">
+                                Data Praktikan tidak valid!
+                            </p>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogCancel className="bg-rose-600 hover:bg-rose-600/90 text-white hover:text-white">
+                        Ok
+                    </AlertDialogCancel>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog open={ openVerifikasiPraktikan } onOpenChange={ handleCancelVerifikasi }>
+                <AlertDialogContent className="my-alert-dialog-content" onOpenAutoFocus={ (e) => e.preventDefault() }>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            Verifikasi Praktikan
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-zinc-900 font-medium antialiased">
+                            { verifikasiPraktikan.nama } - { verifikasiPraktikan.npm }
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <form className={ cn("grid items-start gap-4") } onSubmit={ handleSubmitVerifikasiPraktikan }>
+                        <div className="space-y-1.5">
+                            <div className="grid gap-2">
+                                <Label>Asisten Laboratorium</Label>
+                                <Select disabled={ verifikasiPraktikan.isRandomAslab } value={ verifikasiPraktikan.aslab_id } onValueChange={ (val) => setVerifikasiPraktikan((prevState) => ({ ...prevState, aslab_id: val })) }>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder={ `${verifikasiPraktikan.isRandomAslab ? 'Asisten Laboratorium Acak' : 'Pilih Asisten Laboratorium' }` }/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        { aslabs.length > 0 ? (
+                                            aslabs.map((aslab) => (
+                                                <SelectItem
+                                                    key={aslab.id}
+                                                    value={aslab.id}
+                                                >
+                                                    { aslab.nama }
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <SelectItem
+                                                value={`null-${Math.random().toString(36).substring(2, 6)}`}
+                                                disabled
+                                            >
+                                                Tidak ada Aslab tersedia
+                                            </SelectItem>
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="items-center flex gap-1.5">
+                                <Checkbox id="random-aslab" onCheckedChange={(checked) => setVerifikasiPraktikan((prevState) => ({ ...prevState, isRandomAslab: !!checked, aslab_id: !!(checked) ? '' : prevState.aslab_id })) } />
+                                <Label htmlFor="random-aslab" className="text-sm opacity-80">Asisten Laboratorium Acak</Label>
+                            </div>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Sesi Praktikum</Label>
+                            <Select
+                                value={verifikasiPraktikan.sesi_praktikum_id}
+                                onValueChange={(val) =>
+                                    setVerifikasiPraktikan((prevState) => ({
+                                        ...prevState,
+                                        sesi_praktikum_id: val,
+                                    }))
+                                }
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Pilih Sesi" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {sesiPraktikums.length > 0 ? (
+                                        sesiPraktikums.map((sesi) => {
+                                            const isDisabled = sesi.kuota !== null && (sesi.sisa_kuota ?? 0) <= 0;
+                                            return (
+                                                <SelectItem
+                                                    key={sesi.id}
+                                                    value={sesi.id}
+                                                    disabled={isDisabled}
+                                                >
+                                                    {`${sesi.nama} - ${sesi.hari} (${parseSesiTime(sesi.waktu_mulai, currentDate)} - ${parseSesiTime(sesi.waktu_selesai, currentDate)}) ${
+                                                        isDisabled ? "(Kuota Penuh)" : ""
+                                                    }`}
+                                                </SelectItem>
+                                            );
+                                        })
+                                    ) : (
+                                        <SelectItem
+                                            value={`null-${Math.random()
+                                                .toString(36)
+                                                .substring(2, 6)}`}
+                                            disabled
+                                        >
+                                            Tidak ada sesi tersedia
+                                        </SelectItem>
+                                    )}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <Button type="submit" disabled={ !verifikasiPraktikan.sesi_praktikum_id || (verifikasiPraktikan.isRandomAslab ? false : !verifikasiPraktikan.aslab_id) || verifikasiPraktikan.onSubmit } className="bg-green-500 hover:bg-green-500/90 ">
+                            { verifikasiPraktikan.onSubmit
+                                ? (
+                                    <>Memproses <Loader2 className="animate-spin"/></>
+                                ) : (
+                                    <span>Simpan</span>
+                                )
+                            }
+                        </Button>
+                    </form>
+                    <AlertDialogCancel disabled={ verifikasiPraktikan.onSubmit }>Batal</AlertDialogCancel>
+                </AlertDialogContent>
+            </AlertDialog>
+            <AlertDialog open={ openReturnVerifikasiPraktikan } onOpenChange={ setOpenReturnVerifikasiPraktikan }>
+                <AlertDialogContent className="my-alert-dialog-content" onOpenAutoFocus={ (e) => e.preventDefault() }>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            Kembalikan Data Praktikan
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-zinc-900 font-medium antialiased">
+                            { verifikasiPraktikan.nama } - { verifikasiPraktikan.npm }
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <form className={ cn("grid items-start gap-4") } onSubmit={ handleSubmitVerifikasiPraktikan }>
+                        <div className="grid w-full gap-1.5">
+                            <Label htmlFor="message">Alasan pengembalian</Label>
+                            <Textarea className="min-h-32" placeholder="Type your message here." id="message" />
+                        </div>
+                        <Button type="submit" disabled={ !verifikasiPraktikan.sesi_praktikum_id || (verifikasiPraktikan.isRandomAslab ? false : !verifikasiPraktikan.aslab_id) } className="bg-red-600 hover:bg-red-600/85">
+                            { verifikasiPraktikan.onSubmit
+                                ? (
+                                    <>Memproses <Loader2 className="animate-spin"/></>
+                                ) : (
+                                    <span>Kembalikan</span>
+                                )
+                            }
+                        </Button>
+                    </form>
+                    <AlertDialogCancel>Batal</AlertDialogCancel>
+                </AlertDialogContent>
+            </AlertDialog>
+
         </>
     );
 }
-
-

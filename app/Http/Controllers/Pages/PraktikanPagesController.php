@@ -100,18 +100,19 @@ class PraktikanPagesController extends Controller
             'praktikums' => fn() => Praktikum::select([
                 'praktikum.id',
                 'praktikum.nama',
-                'praktikum.tahun',
                 'praktikum_praktikan.terverifikasi',
-                'periode_praktikum.nama as periode_nama',
                 'sesi_praktikum.id as sesi_id',
                 'sesi_praktikum.nama as sesi_nama',
                 'sesi_praktikum.hari',
                 'sesi_praktikum.waktu_mulai',
-                'sesi_praktikum.waktu_selesai'
+                'sesi_praktikum.waktu_selesai',
+                'aslab.id as aslab_id',
+                'aslab.nama as aslab_nama',
+                'aslab.no_hp as aslab_no_hp',
             ])
                 ->join('praktikum_praktikan', 'praktikum.id', '=', 'praktikum_praktikan.praktikum_id')
-                ->leftJoin('periode_praktikum', 'praktikum.periode_praktikum_id', '=', 'periode_praktikum.id')
-                ->leftJoin('sesi_praktikum', 'praktikum_praktikan.sesi_praktikum_id', '=', 'sesi_praktikum.id') // Join ke sesi_praktikum
+                ->leftJoin('sesi_praktikum', 'praktikum_praktikan.sesi_praktikum_id', '=', 'sesi_praktikum.id')
+                ->leftJoin('aslab', 'praktikum_praktikan.aslab_id', '=', 'aslab.id')
                 ->where('praktikum_praktikan.praktikan_id', $authPraktikan->id)
                 ->when($search, function ($query, $search) {
                     $query->where('praktikum.nama', 'like', "%{$search}%");
@@ -121,15 +122,18 @@ class PraktikanPagesController extends Controller
                     return [
                         'id' => $item->id,
                         'nama' => $item->nama,
-                        'tahun' => $item->tahun,
                         'terverifikasi' => (bool) $item->terverifikasi,
-                        'periode' => $item->periode_nama ? ['nama' => $item->periode_nama] : null,
                         'sesi' => $item->sesi_id ? [
                             'id' => $item->sesi_id,
                             'nama' => $item->sesi_nama,
                             'hari' => $item->hari,
                             'waktu_mulai' => $item->waktu_mulai,
                             'waktu_selesai' => $item->waktu_selesai,
+                        ] : null,
+                        'aslab' => $item->aslab_id ? [
+                            'id' => $item->aslab_id,
+                            'nama' => $item->aslab_nama,
+                            'no_hp' => $item->aslab_no_hp,
                         ] : null,
                     ];
                 }),
@@ -143,6 +147,7 @@ class PraktikanPagesController extends Controller
         }
 
         return Inertia::render('Praktikan/PraktikanPraktikumCreatePage', [
+            'currentDate' => fn() => Carbon::now('Asia/Jakarta'),
             'jenisPraktikums' => JenisPraktikum::with([
                 'praktikum' => function ($query) use ($authPraktikan) {
                     $query->where('status', true)
@@ -185,7 +190,6 @@ class PraktikanPagesController extends Controller
                         ]);
                 }
             ])->get(),
-            'currentDate' => fn() => Carbon::now('Asia/Jakarta')
         ]);
     }
 }

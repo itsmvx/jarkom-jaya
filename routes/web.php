@@ -103,6 +103,7 @@ Route::prefix('praktikum-praktikan')->name('praktikum-praktikan.')->group(functi
     Route::post('/create-mass', [PraktikumPraktikanController::class, 'storeMass'])->name('create-mass');
     Route::post('/update', [PraktikumPraktikanController::class, 'update'])->name('update');
     Route::post('/delete', [PraktikumPraktikanController::class, 'destroy'])->name('delete');
+    Route::post('/verifikasi', [PraktikumPraktikanController::class, 'verifikasi'])->name('verifikasi');
 });
 Route::prefix('label')->name('label.')->group(function () {
     Route::post('/create', [LabelController::class, 'store'])->name('create');

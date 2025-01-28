@@ -10,6 +10,7 @@ import LandingPrak2 from "@/assets/landing-prak2.webp";
 import Spectro from "@/assets/ele-spectro.png";
 import Havoc from "@/assets/ele-havoc.png";
 import Glacio from "@/assets/ele-glacio.png";
+import Electro from "@/assets/ele-electro.png";
 
 export {
     LogoJarkom,
@@ -21,6 +22,7 @@ export {
     Spectro,
     Havoc,
     Glacio,
+    Electro,
     ShorekeeperPP,
     FuminocchiPP,
     NoaPP,

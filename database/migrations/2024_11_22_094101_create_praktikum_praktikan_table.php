@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('pembayaran')->nullable();
             $table->string('modul')->nullable();
             $table->boolean('terverifikasi')->default(false);
+            $table->string('pengembalian')->nullable();
             $table->timestamps();
 
             $table->primary(['praktikum_id', 'praktikan_id']);

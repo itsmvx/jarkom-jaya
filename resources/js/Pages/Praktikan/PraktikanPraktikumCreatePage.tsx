@@ -75,7 +75,11 @@ export default function PraktikanPraktikumCreatePage({ auth, jenisPraktikums, cu
 
     const [ createForm, setCreateForm ] = useState<CreateForm>(createFormInit);
     const handleChangeCreateForm = (key: keyof CreateForm, value: string | boolean | File | null) => {
-        setCreateForm((prevState) => ({ ...prevState, [key]: value }));
+        if (key === 'praktikum_id' && value) {
+            setCreateForm((prevState) => ({ ...prevState, praktikum_id: value as string, sesi_praktikum_id: '' }))
+        } else {
+            setCreateForm((prevState) => ({ ...prevState, [key]: value }));
+        }
     };
     const handleCreateFormSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -203,9 +207,7 @@ export default function PraktikanPraktikumCreatePage({ auth, jenisPraktikums, cu
                                                         value={praktikum.id}
                                                         disabled={!praktikum.available}
                                                     >
-                                                        {`${praktikum.nama} ${
-                                                            !praktikum.available ? '(Sudah terdaftar)' : ''
-                                                        }`}
+                                                        {`${praktikum.nama} ${!praktikum.available ? '(Sudah terdaftar)' : ''}`}
                                                     </SelectItem>
                                                 ))
                                             ) : (
@@ -223,24 +225,31 @@ export default function PraktikanPraktikumCreatePage({ auth, jenisPraktikums, cu
                         </div>
                         <div className="grid gap-2 min-w-80">
                             <Label htmlFor="sesi_praktikum">Pilih Sesi Praktikum<span className="text-red-600 font-semibold">*</span></Label>
-                            <Select onValueChange={(val) => handleChangeCreateForm('sesi_praktikum_id', val)}>
+                            <Select
+                                onValueChange={(val) => handleChangeCreateForm('sesi_praktikum_id', val)}
+                                disabled={!createForm.praktikum_id} // Disable select sesi if no praktikum selected
+                            >
                                 <SelectTrigger className="min-w-80">
-                                    <SelectValue placeholder="Pilih sesi praktikum..." />
+                                    <SelectValue
+                                        placeholder={createForm.praktikum_id ? "Pilih sesi praktikum..." : "Pilih praktikum dulu..."}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {jenisPraktikums.map((jenis) =>
-                                        jenis.praktikum.map((praktikum) => (
-                                            <SelectGroup key={praktikum.id}>
-                                                <SelectLabel>{praktikum.nama}</SelectLabel>
-                                                {praktikum.sesi.length > 0 ? (
+                                    {createForm.praktikum_id ? (
+                                        jenisPraktikums
+                                            .flatMap((jenis) =>
+                                                jenis.praktikum.filter((praktikum) => praktikum.id === createForm.praktikum_id)
+                                            )
+                                            .map((praktikum) => {
+                                                return praktikum.sesi.length > 0 ? (
                                                     praktikum.sesi.map((sesi) => (
                                                         <SelectItem
                                                             key={sesi.id}
                                                             value={sesi.id}
-                                                            disabled={(sesi.kuota ?? 0) <= 0}
+                                                            disabled={sesi.kuota !== null && (sesi.sisa_kuota ?? 0) <= 0}
                                                         >
                                                             {`${sesi.nama} - ${sesi.hari} (${parseSesiTime(sesi.waktu_mulai, currentDate)} - ${parseSesiTime(sesi.waktu_selesai, currentDate)}) ${
-                                                                (sesi.kuota ?? 0) <= 0 ? '(Kuota Penuh)' : ''
+                                                                sesi.kuota !== null && (sesi.sisa_kuota ?? 0) <= 0 ? '(Kuota Penuh)' : ''
                                                             }`}
                                                         </SelectItem>
                                                     ))
@@ -251,14 +260,21 @@ export default function PraktikanPraktikumCreatePage({ auth, jenisPraktikums, cu
                                                     >
                                                         Tidak ada sesi tersedia
                                                     </SelectItem>
-                                                )}
-                                            </SelectGroup>
-                                        ))
+                                                )
+                                            })
+                                    ) : (
+                                        <SelectItem
+                                            value="null"
+                                            disabled
+                                        >
+                                            Pilih praktikum dulu
+                                        </SelectItem>
                                     )}
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
+
                     <div className="flex flex-col md:flex-row md:flex-wrap gap-5 items-start md:items-start justify-center *:w-full *:md:min-w-72 *:md:w-80 *:min-h-80 *:py-5 *:px-4 *flex-1 *:flex *:flex-col *:gap-1 *:border *:border-muted-foreground/30 *:rounded-md *:grow">
                         <div>
                             <h5 className="w-64 font-medium">Kartu Rencana Studi (KRS)<span className="text-red-600 font-semibold">*</span></h5>
