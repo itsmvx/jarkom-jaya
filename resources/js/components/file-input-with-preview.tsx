@@ -14,9 +14,11 @@ interface FileInputWithPreviewProps {
     allowedTypes: string[];
     placeholder?: string;
     errorMessage?: string;
+    maxSize?: number;
+    maxSizeMessage?: string;
 }
 
-export function FileInputWithPreview({ id, value, onChange, allowedTypes, placeholder, errorMessage }: FileInputWithPreviewProps) {
+export function FileInputWithPreview({ id, value, onChange, allowedTypes, placeholder, errorMessage, maxSize, maxSizeMessage }: FileInputWithPreviewProps) {
     const { toast } = useToast();
     const [preview, setPreview] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -24,34 +26,46 @@ export function FileInputWithPreview({ id, value, onChange, allowedTypes, placeh
 
     const acceptString = useMemo(() => allowedTypes.join(','), [allowedTypes]);
 
-    console.log('render')
     useEffect(() => {
-        if (value && !preview) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setPreview(e.target?.result as string);
-            };
-            reader.readAsDataURL(value);
+        if (value) {
+            if (value.type === "application/pdf") {
+                const url = URL.createObjectURL(value);
+                setPreview(url);
+            } else {
+                const reader = new FileReader();
+                reader.onload = (e) => setPreview(e.target?.result as string);
+                reader.readAsDataURL(value);
+            }
         } else {
             setPreview(null);
         }
     }, [value]);
 
     const handleFileChange = useCallback((file: File | null) => {
-        if (file && allowedTypes.includes(file.type)) {
-            onChange(file);
-        } else {
+        if (!file) return;
+
+        if (!allowedTypes.includes(file.type)) {
             toast({
                 variant: "destructive",
-                title: "Periksa kembali Input anda!",
+                title: "Periksa kembali input Anda!",
                 description: errorMessage ?? `Hanya file dengan tipe ${allowedTypes.join(', ')} yang diperbolehkan.`,
             });
             onChange(null);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
+            return;
         }
-    }, [onChange, toast, allowedTypes]);
+
+        if (maxSize && file.size > maxSize * 1024) {
+            toast({
+                variant: "destructive",
+                title: "Ukuran file terlalu besar!",
+                description: maxSizeMessage ?? `Maksimum ukuran file adalah ${maxSize / 1024} MB.`,
+            });
+            onChange(null);
+            return;
+        }
+
+        onChange(file);
+    }, [onChange, toast, allowedTypes, maxSize, maxSizeMessage]);
 
     const handleInputChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0] || null;
@@ -78,45 +92,37 @@ export function FileInputWithPreview({ id, value, onChange, allowedTypes, placeh
     const handleCancel = useCallback(() => {
         onChange(null);
         setPreview(null);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
+        if (fileInputRef.current) fileInputRef.current.value = '';
     }, [onChange]);
 
     const renderPreview = useCallback(() => {
         if (!value || !preview) return null;
-
-        if (value.type.startsWith('image/')) {
-            return (
-                <img
-                    src={preview || "/placeholder.svg"}
-                    alt="File preview"
-                    className="object-contain"
-                />
-            );
-        } else {
-            return <iframe src={preview} className="w-full h-full" title="File Preview" />;
-        }
+        return value.type.startsWith('image/')
+            ? <img src={preview || "/placeholder.svg"} alt="File preview" className="object-contain" />
+            : <iframe src={preview} className="w-full h-full min-h-[500px]" title="File Preview" />;
     }, [value, preview]);
 
     return (
         <div className="w-full max-w-md mx-auto">
             {value ? (
-                <Card className="mt-4 px-5 py-4 max-w-sm rounded-sm !shadow-none">
+                <Card className="mt-2 px-5 py-4 rounded-sm !shadow-none mx-auto border-none">
                     <div className="flex items-center justify-between gap-1 mb-2">
-                        {(value.type).startsWith('image/') ? <ImageIcon /> : <FileScan />}
+                        {value.type.startsWith('image/') ? <ImageIcon /> : <FileScan />}
                         <span className="font-medium truncate">{value.name}</span>
                     </div>
                     <div className="bg-gray-100 rounded-sm p-0 flex items-center justify-center" style={{ aspectRatio: '3/4' }}>
                         {renderPreview()}
                     </div>
                     <div className="mt-4 flex justify-end space-x-2">
-                        <Button size="icon" className="bg-red-600/80 hover:bg-red-600" onClick={handleCancel}><Trash2 /></Button>
+                        <Button size="icon" className="bg-red-600/80 hover:bg-red-600" onClick={handleCancel}>
+                            <Trash2 />
+                        </Button>
                     </div>
                 </Card>
             ) : (
                 <>
-                    <div className={`relative w-full aspect-[3/4] rounded my-2.5 flex items-center justify-center cursor-pointer ${
+                    <div
+                        className={`relative w-full aspect-[3/4] rounded my-2.5 flex items-center justify-center cursor-pointer ${
                             isDragging ? 'border-2 border-dashed border-blue-500' : ''
                         }`}
                         onDragOver={handleDragOver}
@@ -127,7 +133,9 @@ export function FileInputWithPreview({ id, value, onChange, allowedTypes, placeh
                         <Skeleton className="absolute inset-0 w-full h-full !animate-none">
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
                                 <Upload className="mb-2 text-gray-400" />
-                                <p className="mt-2 text-sm text-center text-gray-500">{ placeholder ?? 'Drag & drop file here or click to select' }</p>
+                                <p className="mt-2 text-sm text-center text-gray-500">
+                                    {placeholder ?? 'Drag & drop file here or click to select'}
+                                </p>
                             </div>
                         </Skeleton>
                     </div>
@@ -139,15 +147,8 @@ export function FileInputWithPreview({ id, value, onChange, allowedTypes, placeh
                         ref={fileInputRef}
                         id={`file-input-${id}`}
                     />
-                    <label
-                        htmlFor={`file-input-${id}`}
-                        className="hidden w-full max-w-md px-4 py-2 text-sm font-medium text-center text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer"
-                    >
-                        Pilih file
-                    </label>
                 </>
             )}
         </div>
     );
 }
-

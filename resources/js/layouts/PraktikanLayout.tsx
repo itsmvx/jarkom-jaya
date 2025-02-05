@@ -23,7 +23,7 @@ export const PraktikanLayout = ({ auth, children }: PageProps<{
                     <div className="flex items-center space-x-4">
                         <SidebarTrigger className="-ml-1"/>
                         <Separator orientation="vertical" className="h-4"/>
-                        <h3 className="text-sm hidden sm:block font-medium text-muted-foreground/80 italic select-none">RPL COULD NEVER DO</h3>
+                        <h3 className="text-sm hidden sm:block font-medium text-muted-foreground/80 italic select-none">JARKOM JAYA</h3>
                     </div>
                     <ProfileDropdown auth={auth} />
                 </header>

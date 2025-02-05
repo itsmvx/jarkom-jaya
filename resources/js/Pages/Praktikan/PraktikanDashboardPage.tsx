@@ -1,12 +1,10 @@
 import { PraktikanLayout } from "@/layouts/PraktikanLayout";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, BookOpenText, FolderSync } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BookOpenText, FolderSync } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MahiruCirle } from "@/lib/StaticImagesLib";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Head, router } from "@inertiajs/react";
-import * as React from "react";
+import { Head } from "@inertiajs/react";
 import { PageProps } from "@/types";
 import ErrorPage from "@/Pages/ErrorPage";
 
@@ -84,11 +82,6 @@ export default function PraktikanDashboardPage({ auth, aslabs, kuis, praktikums 
                                 }
                             </CardContent>
                         </ScrollArea>
-                        <CardFooter className="mt-auto">
-                            <Button className="w-full">
-                                Manajemen Kuis <ArrowRight/>
-                            </Button>
-                        </CardFooter>
                     </Card>
                     <Card className="flex flex-col w-full lg:w-1/3 lg:min-w-[23rem] h-[27rem] lg:h-[32rem] overflow-y-auto rounded">
                         <CardHeader>
@@ -122,11 +115,6 @@ export default function PraktikanDashboardPage({ auth, aslabs, kuis, praktikums 
                                 }
                             </CardContent>
                         </ScrollArea>
-                        <CardFooter className="mt-auto">
-                            <Button className="w-full" onClick={() => router.visit(route('admin.aslab.index'))}>
-                                Manajemen Aslab <ArrowRight/>
-                            </Button>
-                        </CardFooter>
                     </Card>
                 </div>
             </PraktikanLayout>

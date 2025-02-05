@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Praktikan;
 use App\Models\Praktikum;
 use App\Models\PraktikumPraktikan;
 use Illuminate\Database\QueryException;
@@ -43,11 +42,11 @@ class PraktikumPraktikanController extends Controller
         }
 
         $validated = $request->validate([
-            'praktikum_id' => 'required',
+            'praktikum_id' => 'required|exists:praktikum,id',
             'sesi_praktikum_id' => 'required|exists:sesi_praktikum,id',
-            'krs' => 'required|file|max:4096',
-            'pembayaran' => 'required|file|max:4096',
-            'modul' => 'nullable|file|mimes:png,jpg,jpeg|max:4096',
+            'krs' => 'required|file|mimes:pdf|max:4096',
+            'pembayaran' => 'required|file|mimes:pdf|max:4096',
+            'modul' => 'nullable|file|mimes:png,jpg,jpeg|max:5120',
         ]);
 
         DB::beginTransaction();

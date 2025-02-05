@@ -10,13 +10,13 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { LogoJarkom } from "@/lib/StaticImagesLib";
+import { HumpbackWhale, LogoJarkom } from "@/lib/StaticImagesLib";
 import { Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 import { Head, Link, router } from "@inertiajs/react";
 import axios, { AxiosError } from "axios";
 import { useToast } from "@/hooks/use-toast";
-import { BgAniPC } from "@/lib/StaticLib";
+// import { BgAniPC } from "@/lib/StaticLib";
 
 const loginSchema = z.object({
     username: z.string({ message: 'Username wajib diisi!' }).min(3, "Username minimal 3 karakter").max(50, "Username terlalu panjang"),
@@ -98,13 +98,18 @@ export default function PraktikanLoginPage() {
         <>
             <Head title="Login" />
             <div className="relative min-h-screen bg-gradient-to-b from-muted from-70% to-muted-foreground flex items-center justify-center">
-                <video
-                    src={ BgAniPC }
-                    autoPlay
-                    loop
-                    muted
+                {/*<video*/}
+                {/*    src={ BgAniPC }*/}
+                {/*    autoPlay*/}
+                {/*    loop*/}
+                {/*    muted*/}
+                {/*    className="absolute inset-0 w-full h-full object-cover z-0"*/}
+                {/*></video>*/}
+                <img
+                    src={ HumpbackWhale }
+                    alt="humpback-whale"
                     className="absolute inset-0 w-full h-full object-cover z-0"
-                ></video>
+                />
 
                 <div className="relative z-10 w-full max-w-md m-4">
                     <Card className="w-full max-w-md shadow-md !bg-white !bg-opacity-80">

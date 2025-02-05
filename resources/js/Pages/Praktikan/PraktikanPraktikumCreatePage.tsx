@@ -96,23 +96,26 @@ export default function PraktikanPraktikumCreatePage({ auth, jenisPraktikums, cu
         const { praktikum_id, sesi_praktikum_id, krs, pembayaran, modul } = createForm;
         const createSchema = z.object({
             praktikum_id: z
-                .string({ message: 'Format Praktikum dipilih tidak valid!' })
-                .min(1, { message: 'Praktikum wajib dipilih!' }),
+                .string({ message: "Format Praktikum dipilih tidak valid!" })
+                .min(1, { message: "Praktikum wajib dipilih!" }),
             sesi_praktikum_id: z
-                .string({ message: 'Format Sesi Praktikum dipilih tidak valid!' })
-                .min(1, { message: 'Sesi Praktikum wajib dipilih!' }),
+                .string({ message: "Format Sesi Praktikum dipilih tidak valid!" })
+                .min(1, { message: "Sesi Praktikum wajib dipilih!" }),
             krs: z
-                .instanceof(File, { message: 'KRS harus berupa file yang valid!' })
-                .nullable()
-                .refine(file => file !== null, { message: 'KRS wajib diunggah!' }),
+                .instanceof(File, { message: "KRS harus berupa file yang valid!" })
+                .refine(file => file.type === "application/pdf", { message: "File KRS harus berupa file PDF!" })
+                .refine(file => file.size <= (4 * 1024 * 1024), { message: "Ukuran file KRS maksimal 4MB!" }),
             pembayaran: z
-                .instanceof(File, { message: 'Pembayaran harus berupa file yang valid!' })
-                .nullable()
-                .refine(file => file !== null, { message: 'Bukti pembayaran wajib diunggah!' }),
+                .instanceof(File, { message: "Pembayaran harus berupa file yang valid!" })
+                .refine(file => file.type === "application/pdf", { message: "Bukti pembayaran harus berupa file PDF!" })
+                .refine(file => file.size <= (4 * 1024 * 1024), { message: "Ukuran file bukti pembayaran maksimal 4MB!" }),
             modul: z
-                .instanceof(File, { message: 'Modul harus berupa file yang valid!' })
+                .instanceof(File, { message: "Modul harus berupa file yang valid!" })
                 .nullable()
+                .refine(file => file === null || ["image/jpeg", "image/jpg", "image/png"].includes(file.type), { message: "File pembayaran modul harus berupa file JPG, JPEG, atau PNG!" })
+                .refine(file => file === null || file.size <= (5 * 1024 * 1024), { message: "Ukuran file pembayaran modul maksimal 5MB!" })
         });
+
         const createParse = createSchema.safeParse({
             praktikum_id: praktikum_id,
             sesi_praktikum_id: sesi_praktikum_id,
@@ -281,8 +284,10 @@ export default function PraktikanPraktikumCreatePage({ auth, jenisPraktikums, cu
                             <FileInputWithPreview
                                 allowedTypes={ [ "application/pdf" ] }
                                 id="krs"
-                                placeholder="Tarik dan Lepaskan file disini atau klik untuk memilih file (PDF)"
+                                placeholder="Tarik dan Lepaskan file disini atau klik untuk memilih file (PDF). Ukuran maksimum 4MB"
                                 errorMessage="Hanya file PDF yang diperbolehkan"
+                                maxSize={4096}
+                                maxSizeMessage="Ukuran maksimum file KRS adalah 4MB"
                                 value={ createForm.krs }
                                 onChange={ (file) => handleChangeCreateForm('krs', file) }
                             />
@@ -292,8 +297,10 @@ export default function PraktikanPraktikumCreatePage({ auth, jenisPraktikums, cu
                             <FileInputWithPreview
                                 id="pembayaran"
                                 allowedTypes={ [ "application/pdf" ] }
-                                placeholder="Tarik dan Lepaskan file disini atau klik untuk memilih file (PDF)"
+                                placeholder="Tarik dan Lepaskan file disini atau klik untuk memilih file (PDF). Ukuran maksimum 4MB"
                                 errorMessage="Hanya file PDF yang diperbolehkan"
+                                maxSize={4096}
+                                maxSizeMessage="Ukuran maksimum file bukti Pembayaran adalah 4MB"
                                 value={ createForm.pembayaran }
                                 onChange={ (file) => handleChangeCreateForm('pembayaran', file) }
                             />
@@ -305,8 +312,10 @@ export default function PraktikanPraktikumCreatePage({ auth, jenisPraktikums, cu
                             <FileInputWithPreview
                                 id="modul"
                                 allowedTypes={ [ "image/png","image/jpeg","image/jpg" ] }
-                                placeholder="Tarik dan Lepaskan file disini atau klik untuk memilih file (JPG/JPEG/PNG)"
+                                placeholder="Tarik dan Lepaskan file disini atau klik untuk memilih file (JPG/JPEG/PNG). Ukuran maksimum 5MB"
                                 errorMessage="Hanya file gambar png,jpeg,jpg yang diperbolehkan"
+                                maxSize={5120}
+                                maxSizeMessage="Ukuran maksimum file pembayaran Modul adalah 5MB"
                                 value={ createForm.modul }
                                 onChange={ (file) => handleChangeCreateForm('modul', file) }
                             />

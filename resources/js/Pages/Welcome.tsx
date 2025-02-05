@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { GraduationCap, ChevronsDown, SquareArrowOutUpRight, } from 'lucide-react'
+import { ChevronsDown, SquareArrowOutUpRight, } from 'lucide-react'
 import { Head, Link } from "@inertiajs/react";
-import { LandingPrak, MahiruStandart } from "@/lib/StaticImagesLib";
+import { LandingPrak, LandingPrak2, LandingPrak3, LogoJarkom, MahiruStandart } from "@/lib/StaticImagesLib";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Aslab_DATA } from "@/lib/StaticDataLib";
@@ -10,8 +10,22 @@ import { Footer } from "@/components/app-footer";
 import { AppLayout } from "@/layouts/AppLayout";
 import { PageProps } from "@/types";
 import { ProfileDropdown } from "@/components/profile-dropdown";
+import { useRef, useState, useEffect } from "react";
 
 export default function LandingPage({ auth }: PageProps) {
+    const landingImages = [ LandingPrak, LandingPrak2, LandingPrak3 ];
+    const featuresRef = useRef<HTMLDivElement | null>(null);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentImageIndex((prevIndex) => (prevIndex + 1) % landingImages.length)
+        }, 5000);
+
+        return () => clearInterval(interval)
+    }, [landingImages.length]);
+
+
     return (
         <>
             <AppLayout>
@@ -20,8 +34,9 @@ export default function LandingPage({ auth }: PageProps) {
                     <header className="px-4 lg:px-6 h-14 flex items-center">
                         <Link
                             className="p-2 flex items-center justify-center gap-1.5 font-semibold bg-none hover:bg-muted transition-colors ease-in-out duration-150 rounded-md"
-                            href="#">
-                            <GraduationCap className="h-7 w-7"/>
+                            href="#"
+                        >
+                            <img src={ LogoJarkom } alt="logo-jarkom" width={30} className="rounded-full"/>
                             <span className="sr-only">Laboratorium Jaringan Komputer ITATS</span>
                             <p>JARKOM JAYA</p>
                         </Link>
@@ -30,16 +45,25 @@ export default function LandingPage({ auth }: PageProps) {
                         </nav>
                     </header>
                     <main className="flex-1">
-                        <section
-                            className="relative flex items-center justify-center w-full min-h-[calc(100vh-3rem)] py-12 md:py-24 lg:py-32 xl:py-48 bg-center bg-cover"
-                        >
-                            <img
-                                src={ LandingPrak }
-                                alt="Laboratorium Jaringan Komputer ITATS"
-                                className="absolute inset-0 object-cover w-full h-full -z-10"
-                                loading="lazy"
-                            />
-                            <div className="absolute inset-0 bg-black/70 -z-10"/>
+                        <section className="relative flex items-center justify-center w-full min-h-[calc(100vh-3rem)] py-12 md:py-24 lg:py-32 xl:py-48 bg-center bg-cover overflow-hidden">
+                            {landingImages.map((image, index) => (
+                                <div
+                                    key={image}
+                                    className="absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out"
+                                    style={{
+                                        opacity: index === currentImageIndex ? 1 : 0,
+                                        zIndex: index === currentImageIndex ? -10 : -20,
+                                    }}
+                                >
+                                    <img
+                                        src={image || "/placeholder.svg"}
+                                        alt={`Background ${index + 1}`}
+                                        className="absolute inset-0 object-cover w-full h-full"
+                                        loading={index === 0 ? "eager" : "lazy"}
+                                    />
+                                </div>
+                            ))}
+                            <div className="absolute inset-0 bg-black/70 -z-10" />
                             <div className="relative z-10 h-full container px-4 md:px-6">
                                 <div className="flex flex-col items-center space-y-4 text-center">
                                     <div className="space-y-2">
@@ -47,13 +71,13 @@ export default function LandingPage({ auth }: PageProps) {
                                             Laboratorium Jaringan Komputer ITATS
                                         </h2>
                                         <p className="mx-auto max-w-[700px] text-gray-400 md:text-xl font-medium">
-                                            Ini website buat skripsi gwe ya brodi. Jadi ksabar ya, dikembangkan pelan-pelan soalnya tiap fitur harus show progress ke dospem jiR
+                                            Makasih udah mau visit bang, welkam and keep chilling always Looksmaxxing
                                         </p>
                                     </div>
                                     <div className="space-x-4">
-                                        <Button className="tracking-wider">
+                                        <Button className="tracking-wider" onClick={ () => featuresRef.current?.scrollIntoView({ behavior: 'smooth' }) }>
                                             LESGOO
-                                            <ChevronsDown/>
+                                            <ChevronsDown className="ml-2 h-4 w-4" />
                                         </Button>
                                         <Button variant="outline">Tentang Kami</Button>
                                     </div>
@@ -62,7 +86,7 @@ export default function LandingPage({ auth }: PageProps) {
                         </section>
 
                         <section id="features" className="w-full py-12 px-4 bg-muted">
-                            <Card className="pt-8 pb-4">
+                            <Card className="pt-8 pb-4" ref={ featuresRef } >
                                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-center mb-12">
                                     Praktikum
                                 </h2>
@@ -77,7 +101,7 @@ export default function LandingPage({ auth }: PageProps) {
                                             <div
                                                 className="mx-auto lg:mx-0 w-auto md:w-96 relative order-first lg:order-none">
                                                 <img
-                                                    src={ MahiruStandart }
+                                                    src={ LogoJarkom }
                                                     alt="mahiru-standart"
                                                     width={ 300 }
                                                     className="rounded-lg aspect-square object-cover object-center"
@@ -140,30 +164,7 @@ export default function LandingPage({ auth }: PageProps) {
                                                 </CardHeader>
                                                 <CardContent className="h-44">
                                                     <p className="text-left md:text-justify text-ellipsis line-clamp-6">
-                                                        Lorem ipsum odor amet, consectetuer adipiscing elit. Hac magnis
-                                                        tempor aenean vestibulum platea. Consequat posuere ultrices cursus
-                                                        dis ullamcorper habitant nec fermentum. Fermentum iaculis sem nullam
-                                                        inceptos metus odio lorem malesuada. Sit rutrum sociosqu fames
-                                                        curabitur nostra iaculis id. Porttitor felis ultricies primis dolor
-                                                        tempor nostra. Ac neque phasellus ut nulla dictum elementum. Quam
-                                                        elit etiam magnis libero laoreet eleifend facilisi suspendisse.
-                                                        Facilisis diam facilisi pulvinar cras tortor risus habitant.
-                                                        Ultrices volutpat potenti fusce venenatis libero gravida sagittis
-                                                        aenean. Eu purus imperdiet nibh conubia nunc pharetra odio. Sed
-                                                        sapien facilisis platea at tristique vestibulum est leo. Lacinia ac
-                                                        ac penatibus ullamcorper porttitor ultricies. Ex mauris commodo
-                                                        massa dui neque. Justo cras tincidunt lorem etiam accumsan sapien
-                                                        blandit. Metus id maximus lorem, malesuada pharetra nulla taciti
-                                                        semper.
-                                                        Odio mauris class conubia nam eu. Mollis mus natoque curabitur,
-                                                        malesuada inceptos fermentum quam eleifend porttitor? Ad finibus
-                                                        aliquam, velit sapien parturient orci nisl. Aenean fringilla
-                                                        ultricies adipiscing accumsan curae potenti sagittis vehicula. Ante
-                                                        libero nam, vulputate cubilia fusce litora donec. Rutrum posuere
-                                                        lorem inceptos tellus id vel dis. Class molestie risus eleifend
-                                                        tortor; litora nibh condimentum torquent. Nec adipiscing quam class
-                                                        suspendisse cubilia tortor. Egestas id viverra amet vehicula dapibus
-                                                        dui.
+                                                        Praktikum yang membahas secara praktis berbagai hal yang berhubungan dengan Pengenalan jaringan komputer, diantaranya seperti TCP/IP, IPv4, IPv6, Cisco Router, Routing, GNS3, DHCP, SSH, DNS, Webserver, Mail server, dan Proxy Server. Praktikum ini diharapkan dapat membantu para pemula atau newbies untuk mengenal dan menuntun arti dari sebuah ilmu jaringan komputer itu sendiri.
                                                     </p>
                                                 </CardContent>
                                                 <CardFooter>
@@ -175,7 +176,7 @@ export default function LandingPage({ auth }: PageProps) {
                                             <div
                                                 className="mx-auto lg:mx-0 w-auto md:w-96 relative order-first lg:order-none">
                                                 <img
-                                                    src={ MahiruStandart }
+                                                    src={ LogoJarkom }
                                                     alt="mahiru-standart"
                                                     width={ 300 }
                                                     className="mx-auto rounded-lg aspect-square object-cover object-center"
@@ -205,7 +206,7 @@ export default function LandingPage({ auth }: PageProps) {
                                                         <CardContent className="flex flex-col items-center p-6">
                                                             <div className="aspect-square relative w-full mb-4">
                                                                 <img
-                                                                    src={ MahiruStandart }
+                                                                    src={ LogoJarkom }
                                                                     alt={ `image-${ index }` }
                                                                     className="object-cover object-center rounded-md"
                                                                 />
@@ -250,4 +251,3 @@ export default function LandingPage({ auth }: PageProps) {
         </>
     );
 }
-
